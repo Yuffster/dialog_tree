@@ -43,6 +43,7 @@ class Template {
         this._template = (template) ? template.innerHTML : "";
     }
     render() {
+        this.beforeRender();
         var that = this;
         var patt = /{{\s?(.*?)\s?}}/g;  // {{ WORD }}
         var html = this._template.replace(patt, function(m, name) {
@@ -51,16 +52,20 @@ class Template {
         if (this._container) {
             this._container.innerHTML = html;
         }
+        this.afterRender();
         return html;
     }
     attach(id) {
         this._container = document.getElementById(id);
     }
+    beforeRender() {}
+    afterRender() {}
 }
 
 class ListTemplate extends Template {
     constructor(templateID, itemClass) {
         super(templateID);
+        this._nodes = [];
         this._itemClass = itemClass || Template;
         if (!this._template) {
             this._template = "{{ nodes }}";
@@ -71,6 +76,7 @@ class ListTemplate extends Template {
         // Set node properties.
         if (node instanceof Object) for (let k in node) obj[k] = node[k];
         this._nodes.push(obj);
+        this.render();
     }
     addNodes(nodes) {
         for (let n of nodes) this.addNode(n);
@@ -111,68 +117,37 @@ class DialogTree extends ListTemplate {
             this.nodes = nodes;
         }
     }
+    beforeRender() {
+        // Remember which nodes are active so we can switch them on again
+        // after the re-render.
+        this._selected_ids = [];
+        if (!this._container) return;
+        var selected = this._container.querySelectorAll(
+            '.node-list li.selected'
+        );
+        for (let s of selected) this._selected_ids.push(s.id);
+    }
+    afterRender() {
+        if (this._selected_ids) {
+            for (let id of this._selected_ids) {
+                let el = this._container.querySelector('#'+id);
+                if (el) el.classList.add('selected');
+            }
+        }
+        var currents = document.querySelectorAll(
+            '#markov-ui .node-list.current'
+        );
+        for (let el of currents) {
+            el.classList.remove('current');
+        }
+        var last = document.querySelector('#markov-ui .node-list:last-child');
+        if (last) last.classList.add('current');
+    }
 }
 
-var stub_data = [
-    {
-        nodes: [
-            {
-                'words': 'never',
-                'prob': 1,
-                'id': 23425
-            },
-            {
-                'words': 'strangers',
-                'prob': 1,
-                'id': 234
-            }
-        ]
-    },
-    {
-        nodes: [
-            {
-                'words': 'let',
-                'prob': 1,
-                'id': 225
-            },
-            {
-                'words': 'say',
-                'prob': 1,
-                'id': 25
-            },
-            {
-                'words': 'hurt',
-                'prob': 1,
-                'id': 235
-            },
-            {
-                'words': 'run',
-                'prob': 1,
-                'id': 2325
-            },
-            {
-                'words': 'desert',
-                'prob': 1,
-                'id': 237
-            }
-        ]
-    }
-];
+d = new DialogTree();
 
-d = new DialogTree(stub_data);
 d.attach('test-ui');
-
-d.addNode({nodes:[{
-        'words': 'hurt',
-        'prob': 1,
-        'id': 2435
-    },
-    {
-        'words': 'desert',
-        'prob': 1,
-        'id': 2937
-    }
-]});
 
 d.render();
 
