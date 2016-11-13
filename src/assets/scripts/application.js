@@ -1,3 +1,5 @@
+function Application() {
+
 class Template {
     constructor(templateID) {
         var template = document.getElementById(templateID);
@@ -81,7 +83,7 @@ var stub_data = [
     {
         nodes: [
             {
-                'words': 'never gonna',
+                'words': 'never',
                 'prob': 1,
                 'id': 23425
             },
@@ -95,27 +97,27 @@ var stub_data = [
     {
         nodes: [
             {
-                'words': 'let you down',
+                'words': 'let',
                 'prob': 1,
                 'id': 225
             },
             {
-                'words': 'say goodbye',
+                'words': 'say',
                 'prob': 1,
                 'id': 25
             },
             {
-                'words': 'hurt you',
+                'words': 'hurt',
                 'prob': 1,
                 'id': 235
             },
             {
-                'words': 'run around',
+                'words': 'run',
                 'prob': 1,
                 'id': 2325
             },
             {
-                'words': 'desert you',
+                'words': 'desert',
                 'prob': 1,
                 'id': 237
             }
@@ -127,15 +129,28 @@ d = new DialogTree(stub_data);
 d.attach('test-ui');
 
 d.addNode({nodes:[{
-        'words': 'hurt you',
+        'words': 'hurt',
         'prob': 1,
         'id': 2435
     },
     {
-        'words': 'desert you',
+        'words': 'desert',
         'prob': 1,
         'id': 2937
     }
 ]});
 
-d.render()
+d.render();
+
+socket = io.connect('//' + document.domain + ':' + location.port);
+
+socket.on('connect', function() {
+    socket.emit('select_node', 13);
+});
+
+socket.on('add_node', function(data) {
+    d.addNode(data);
+    d.render();
+});
+
+};

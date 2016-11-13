@@ -1,9 +1,12 @@
 from pathlib import Path
 from flask import Flask, request, render_template
+from flask_socketio import SocketIO, emit
 import flask
 
 app = Flask(__name__)
 app.jinja_env.autoescape = False
+
+""" [[[ Asset Stuff (CSS, JS, client templates) ]]] """
 
 @app.route('/scripts/<path:filename>')
 def script_loader(filename):
@@ -42,9 +45,20 @@ def inject_assets():
         views=named_views.items()
     )
 
+""" [[[ Routes. ]]] """
+
 @app.route("/")
 def index():
     return render_template("welcome.html")
+
+""" [[[ Socket API. ]]] """
+
+socketio = SocketIO(app, async_mode='gevent')
+
+@socketio.on('select_node')
+def handle_select_node(id):
+    emit("add_node", {'nodes':[{'words':'omg yay', 'prob':'.3'}]});
+
 
 if __name__ == "__main__":
     app.debug = True

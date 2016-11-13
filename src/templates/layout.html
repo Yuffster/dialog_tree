@@ -20,6 +20,9 @@
         {% for src in scripts %}
             <script type="text/javascript" src="/{{ src }}"></script>
         {% endfor %}
+        <script type="text/javascript">
+            Application();
+        </script>
     {% endblock %}
 </body>
 
