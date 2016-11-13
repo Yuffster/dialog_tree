@@ -1,0 +1,257 @@
+<style>
+    body {
+        font-family: sans-serif;
+        background-color: #132228;
+        color: #efefef;
+    }
+    h1 {
+        color: #79d1f7;
+        font-weight: 100;
+    }
+    #markov-ui {
+        display: flex;
+    }
+    .node-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        margin-right: 20px;
+        width: 200px;
+    }
+    .node-list li {
+        border: 1px solid #efefef;
+        position: relative;
+        text-align: center;
+    }
+
+    .node-list li .words {
+        font-size: 150%;
+        font-weight: 100;
+    }
+
+    .node-list li .prob {
+        color: #ccc;
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
+    }
+
+    .node-list li.selected {
+        color: #000;
+        background-color: #79d1f7;
+    }
+
+    .node-list li.selected .prob {
+        color: #999;
+    }
+</style>
+
+<h1>Dialog Tree</h1>
+<div id="markov-ui">
+    <ul class="node-list">
+        <li>
+            <span class="words">strangers</span>
+            <span class="prob">1</span>
+        </li>
+        <li class="selected">
+            <span class="words">never gonna</span>
+            <span class="prob">1</span>
+        </li>
+        <li>
+            <span class="words">the rules</span>
+            <span class="prob">1</span>
+        </li>
+    </ul>
+    <ul class="node-list">
+        <li>
+            <span class="words">give you up</span>
+            <span class="prob">1</span>
+        </li>
+        <li>
+            <span class="words">let you down</span>
+            <span class="prob">1</span>
+        </li>
+        <li class="selected">
+            <span class="words">run around or </span>
+            <span class="prob">1</span>
+        </li>
+        <li>
+            <span class="words">make you cry</span>
+            <span class="prob">1</span>
+        </li>
+    </ul>
+    <ul class="node-list">
+        <li>
+            <span class="words">hurt you</span>
+            <span class="prob">1</span>
+        </li>
+        <li class="active">
+            <span class="words">desert you</span>
+            <span class="prob">1</span>
+        </li>
+    </ul>
+</div>
+
+<div id="test-ui"></div>
+
+<script type="text/template" id="word-node">
+    <li data-id="{{ id }}">
+        <span class="words">{{ words }}</span>
+        <span class="prob">{{ prob }}</span>
+    </li>
+</script>
+
+<script type="text/template" id="node-list">
+    <ul class="node-list">{{ nodes }}</ul>
+</script>
+
+<script type="text/template" id="dialog-tree">
+    <h1>Dialog Tree</h1>
+    <div id="markov-ui">
+    {{ nodes }}
+    </div>
+</script>
+
+<script>
+
+class Template {
+    constructor(templateID) {
+        var template = document.getElementById(templateID);
+        this._template = (template) ? template.innerHTML : "";
+    }
+    render() {
+        var that = this;
+        var patt = /{{\s?(.*?)\s?}}/g;  // {{ WORD }}
+        var html = this._template.replace(patt, function(m, name) {
+            return that[name];
+        });
+        if (this._container) {
+            this._container.innerHTML = html;
+        }
+        return html;
+    }
+    attach(id) {
+        this._container = document.getElementById(id);
+    }
+}
+
+class ListTemplate extends Template {
+    constructor(templateID, itemClass) {
+        super(templateID);
+        this._itemClass = itemClass || Template;
+        if (!this._template) {
+            this._template = "{{ nodes }}";
+        }
+    }
+    addNode(node) {
+        let obj = new this._itemClass();
+        // Set node properties.
+        if (node instanceof Object) for (let k in node) obj[k] = node[k];
+        this._nodes.push(obj);
+    }
+    addNodes(nodes) {
+        for (let n of nodes) this.addNode(n);
+    }
+    set nodes(data) {
+        this._nodes = [];
+        this.addNodes(data);
+    }
+    get nodes() {
+        var html = "";
+        for (let n of this._nodes) html += n.render();
+        return html;
+    }
+}
+
+class WordNode extends Template {
+    constructor(words, prob, id) {
+        super('word-node');
+        this.words = words;
+        this.prob = prob;
+        this.id = id;
+    }
+}
+
+class NodeList extends ListTemplate {
+    constructor(nodes) {
+        super('node-list', WordNode);
+        if (nodes) {
+            this.nodes = nodes;
+        }
+    }
+}
+
+class DialogTree extends ListTemplate {
+    constructor(nodes) {
+        super('dialog-tree', NodeList);
+        if (nodes) {
+            this.nodes = nodes;
+        }
+    }
+}
+
+
+var stub_data = [
+    {
+        nodes: [
+            {
+                'words': 'never gonna',
+                'prob': 1,
+                'id': 23425
+            },
+            {
+                'words': 'strangers',
+                'prob': 1,
+                'id': 234
+            }
+        ]
+    },
+    {
+        nodes: [
+            {
+                'words': 'let you down',
+                'prob': 1,
+                'id': 225
+            },
+            {
+                'words': 'say goodbye',
+                'prob': 1,
+                'id': 25
+            },
+            {
+                'words': 'hurt you',
+                'prob': 1,
+                'id': 235
+            },
+            {
+                'words': 'run around',
+                'prob': 1,
+                'id': 2325
+            },
+            {
+                'words': 'desert you',
+                'prob': 1,
+                'id': 237
+            }
+        ]
+    }
+]
+
+d = new DialogTree(stub_data);
+d.attach('test-ui');
+
+d.addNode({nodes:[{
+        'words': 'hurt you',
+        'prob': 1,
+        'id': 2435
+    },
+    {
+        'words': 'desert you',
+        'prob': 1,
+        'id': 2937
+    }
+]});
+
+d.render();
+
+</script>

@@ -1,0 +1,26 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+
+<body>
+
+    {% block body %}{% endblock %}
+
+    {% block views %}
+        {% for name, content in views %}
+            <script type="template" id="{{ name }}">
+                {{ content }}
+            </script>
+        {% endfor %}
+    {% endblock %}
+
+    {% block scripts %}
+        {% for src in scripts %}
+            <script type="text/javascript" src="/{{ src }}"></script>
+        {% endfor %}
+    {% endblock %}
+</body>
+
+</html>

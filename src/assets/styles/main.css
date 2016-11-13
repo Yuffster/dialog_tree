@@ -1,0 +1,47 @@
+body {
+    font-family: sans-serif;
+    background-color: #132228;
+    color: #efefef;
+}
+h1 {
+    color: #79d1f7;
+    font-weight: 100;
+}
+#markov-ui {
+    display: flex;
+}
+.node-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    margin-right: 20px;
+    width: 200px;
+}
+.node-list li {
+    border: 1px solid #efefef;
+    position: relative;
+    text-align: center;
+    opacity: .6;
+}
+
+.node-list li .words {
+    font-size: 150%;
+    font-weight: 100;
+}
+
+.node-list li .prob {
+    color: #ccc;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+}
+
+.node-list li.selected {
+    color: #000;
+    background-color: #79d1f7;
+    opacity: 1;
+}
+
+.node-list li.selected .prob {
+    color: #999;
+}
