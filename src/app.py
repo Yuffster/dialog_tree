@@ -14,7 +14,6 @@ def script_loader(filename):
 
 @app.route('/styles/<path:filename>')
 def style_loader(filename):
-    print(filename)
     return flask.send_from_directory('assets/styles', filename)
 
 def get_assets(kind, ext, content=False):
@@ -55,9 +54,12 @@ def index():
 
 socketio = SocketIO(app, async_mode='gevent')
 
+id = 0
+
 @socketio.on('select_node')
 def handle_select_node(id):
-    emit("add_node", {'nodes':[{'words':'omg yay', 'prob':'.3'}]});
+    id += 1
+    emit("add_node", {'nodes':[{'words':'omg yay', 'prob':'.3', 'id':id}]});
 
 
 if __name__ == "__main__":

@@ -80,7 +80,7 @@ class DialogTree extends ListTemplate {
     constructor(nodes) {
         super('dialog_tree', NodeList);
         if (nodes) {
-            this.nodes = nodes;
+            this._nodes = nodes;
         }
     }
     beforeRender() {
@@ -117,19 +117,30 @@ d.attach('test-ui');
 
 d.render();
 
-delegate('#markov-ui .node-list li', 'click', function(evt, target) {
+delegate('#markov-ui .node-list.current li', 'click', function(evt, target) {
     target.classList.add('selected');
+    var words = target.dataset.words;
+    addNode(words);
 });
 
-socket = io.connect('//' + document.domain + ':' + location.port);
+var m = new Markov();
+// Hit new single - We Wanted to Have Fun.
+m.integrate('we wanted to have fun we wanted to have fun we went to the mall we wanted to have fun we went to lunch we wanted to have fun we wanted to have fun we went to the beach we wanted to have fun we wanted to have fun');
 
-socket.on('connect', function() {
-    socket.emit('select_node', 13);
-});
-
-socket.on('add_node', function(data) {
-    d.addNode(data);
+function addNode(word) {
+    var data = m.getNodesFollowing(word);
+    var nodes = [];
+    for (let k in data) {
+        let node = {};
+        node.words = k;
+        node.prob = data[k];
+        node.id = k+Math.floor(Math.random()*1000)+new Date().getTime();
+        nodes.push(node);  
+    }
+    d.addNode({'nodes':nodes})
     d.render();
-});
+}
+
+addNode("we");
 
 };
