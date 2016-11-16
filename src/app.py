@@ -50,18 +50,6 @@ def inject_assets():
 def index():
     return render_template("welcome.html")
 
-""" [[[ Socket API. ]]] """
-
-socketio = SocketIO(app, async_mode='gevent')
-
-id = 0
-
-@socketio.on('select_node')
-def handle_select_node(id):
-    id += 1
-    emit("add_node", {'nodes':[{'words':'omg yay', 'prob':'.3', 'id':id}]});
-
-
 if __name__ == "__main__":
     app.debug = True
     app.run(host='0.0.0.0', port=5000)
