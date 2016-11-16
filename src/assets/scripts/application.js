@@ -94,20 +94,13 @@ class DialogTree extends ListTemplate {
         for (let s of selected) this._selected_ids.push(s.id);
     }
     afterRender() {
+        // Restore selected IDs.
         if (this._selected_ids) {
             for (let id of this._selected_ids) {
                 let el = this._container.querySelector('#'+id);
                 if (el) el.classList.add('selected');
             }
         }
-        var currents = document.querySelectorAll(
-            '#markov-ui .node-list.current'
-        );
-        for (let el of currents) {
-            el.classList.remove('current');
-        }
-        var last = document.querySelector('#markov-ui .node-list:last-child');
-        if (last) last.classList.add('current');
     }
 }
 
@@ -117,7 +110,7 @@ d.attach('test-ui');
 
 d.render();
 
-delegate('#markov-ui .node-list.current li', 'click', function(evt, target) {
+delegate('#markov-ui .node-list:last-child li', 'click', function(evt, target) {
     target.classList.add('selected');
     var words = target.dataset.words;
     addNode(words);
@@ -141,6 +134,6 @@ function addNode(word) {
     d.render();
 }
 
-addNode("we");
+addNode("have");
 
 };
