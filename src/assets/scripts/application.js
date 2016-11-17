@@ -82,6 +82,13 @@ class DialogTree extends ListTemplate {
         if (nodes) {
             this._nodes = nodes;
         }
+        this._words = [];
+    }
+    addWord(word, id) {
+        this._words.push(word);
+    }
+    get words() {
+        return this._words.join(" ");
     }
     beforeRender() {
         // Remember which nodes are active so we can switch them on again
@@ -101,6 +108,17 @@ class DialogTree extends ListTemplate {
                 if (el) el.classList.add('selected');
             }
         }
+        var max_len = 4;
+        // Trim the nodes.
+        var nodes = this._container.querySelectorAll(
+            '.node-list'
+        );
+        if (nodes.length > max_len) {
+            nodes = [].slice.call(nodes);
+            for (let n of nodes.slice(0, nodes.length-max_len)) {
+                n.remove();
+            }
+        }
     }
 }
 
@@ -112,28 +130,32 @@ d.render();
 
 delegate('#markov-ui .node-list:last-child li', 'click', function(evt, target) {
     target.classList.add('selected');
-    var words = target.dataset.words;
-    addNode(words);
+    var words = target.dataset.words,
+        id = target.id;
+    addNode(words, id);
 });
 
 var m = new Markov();
-// Hit new single - We Wanted to Have Fun.
-m.integrate('we wanted to have fun we wanted to have fun we went to the mall we wanted to have fun we went to lunch we wanted to have fun we wanted to have fun we went to the beach we wanted to have fun we wanted to have fun');
+m.integrate('we wanted to have fun we wanted to have fun we went to the mall we wanted to have fun we went to the beach we went to have fun we wanted to have fun')
 
-function addNode(word) {
+function addNode(word, id) {
     var data = m.getNodesFollowing(word);
     var nodes = [];
     for (let k in data) {
         let node = {};
+        let esc = k.replace(/\W/g, '_');
         node.words = k;
         node.prob = data[k];
-        node.id = k+Math.floor(Math.random()*1000)+new Date().getTime();
+        node.id = esc+Math.floor(Math.random()*1000)+new Date().getTime();
         nodes.push(node);  
     }
+    d.addWord(word, id);
     d.addNode({'nodes':nodes})
     d.render();
 }
 
-addNode("have");
+addNode(m.getNode());
+
+console.log("ohai")
 
 };

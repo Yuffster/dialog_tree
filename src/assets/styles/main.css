@@ -9,13 +9,14 @@ h1 {
 }
 #markov-ui {
     display: flex;
+    height: 400px;
 }
 .node-list {
     margin: 0;
     padding: 0;
     list-style: none;
     margin-right: 20px;
-    min-width: 200px;
+    min-width: 150px;
     cursor: default;
 }
 .node-list li {
@@ -49,4 +50,10 @@ h1 {
 
 .node-list li.selected .prob {
     color: #999;
+}
+
+#output {
+    padding-bottom: 20px;
+    color: #79d1f7;
+    text-transform: uppercase;
 }

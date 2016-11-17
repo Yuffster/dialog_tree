@@ -1,12 +1,20 @@
 class Markov {
 
-    constructor() {
+    constructor(size=1) {
         this._nodes = {};
+        this._size = size;
+    }
+
+    _chunk(text) {
+        var out = [];
+        var a = text.match(/[\w\.]+/g);
+        while (a.length > 0) out.push(a.splice(0, this._size).join(" "));
+        return out;
     }
 
     integrate(text) {
         var prev = false;
-        for (let word of text.split(" ")) {
+        for (let word of this._chunk(text)) {
             // Ensure this node is in the database.
             this._nodes[word] = this._nodes[word] || {};
             // Add to total of times this word has followed the previous.
@@ -46,6 +54,10 @@ class Markov {
         for (let i in nums) {
             if (nums[i] >= n) return  
         }
+    }
+
+    getNode() {
+        for (let node in this._nodes) return node;
     }
 
 }
