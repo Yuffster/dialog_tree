@@ -1,9 +1,8 @@
 function Facebook() {
 
 	FB.getLoginStatus(function(r) {
-		var id = r.authResponse.userID;
 		if (r.status == 'connected') {
-			window.feed = new Feed();
+			window.feed = new Feed(r.authResponse.userID);
 		} else {
 			console.log("not logged in");
 		}
@@ -13,7 +12,8 @@ function Facebook() {
 
 class Feed {
 
-	constructor(data) {
+	constructor(id) {
+		this.id = id;
 		this._pending = 0;
 		this._corpus = "";
 		this.getFeed();
@@ -62,7 +62,7 @@ class Feed {
 				res.paging.cursors.after : false;
 			if (next) this.getComments(id, next);
 			for (let c of res.data) {
-				if (c.from.id == id) {
+				if (c.from.id == this.id) {
 					this.add_to_corpus(c.message);
 				}
 			}
