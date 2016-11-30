@@ -74,6 +74,10 @@ class Feed {
 
 	done() {
 		this._pending--;
+		if (this._pending == 0) {
+			console.log('corpus size:', Math.floor(this.size), 'words');
+			this.saveLocally();
+		}
 	}
 
 	add_to_corpus(str) {
@@ -93,6 +97,10 @@ class Feed {
 
 	get corpus() {
 		return this._corpus;
+	}
+
+	saveLocally() {
+		localStorage.setItem('corpus_FB', this._corpus);
 	}
 
 }
