@@ -22,7 +22,6 @@ class Feed {
 	}
 
 	api(uri, fun) {
-		console.log('API:', uri);
 		FB.api(uri, (res) => {
 			if (res.error) console.error(res.error);
 			else fun(res);
