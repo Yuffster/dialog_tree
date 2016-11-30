@@ -83,8 +83,8 @@ class Feed {
 	add_to_corpus(str) {
 		if (!str) return;
 		// Strip URLs.
-		str = str.replace(/https?:\/\/(.*?)\s/g, '');
-		this._corpus += "\n\n"+str;
+		str = str.replace(/https?:\/\/([^ ]*)/g, '');
+		this._corpus += '\n\n'+str;
 	}
 
 	get pages() {
