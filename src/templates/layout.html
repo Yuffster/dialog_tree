@@ -6,6 +6,10 @@
 
 <body>
 
+<fb:login-button
+  scope="public_profile,email,user_posts"
+  onlogin="Facebook();">
+</fb:login-button>
 
     {% block body %}{% endblock %}
 
@@ -26,10 +30,6 @@
         </script>
     {% endblock %}
 
-<fb:login-button 
-  scope="public_profile,email,user_posts"
-  onlogin="Facebook();">
-</fb:login-button>
 
 <script>
   window.fbAsyncInit = function() {
