@@ -9,6 +9,7 @@ class Markov {
     loadStorage() {
         var p = new RegExp('^'+this._storage_namespace+".*?");
         for (let k in localStorage) {
+            if (!k.match(p)) continue;
             this._nodes.push(k.replace(p, ''));
         }
     }
