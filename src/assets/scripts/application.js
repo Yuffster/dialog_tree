@@ -141,10 +141,10 @@ var txt = localStorage.getItem('corpus_FB')
 //m.integrate('we wanted to have fun we went to the mall we wanted to have fun')
 //m.loadStorage();
 
-var w = new WorkerAPI('markov_worker', "MRKV_");
+var w = new WorkerAPI('markov_worker');
 
 var c = w.request('count', 5);
-c.on('progress', function(v, i, t) { console.log(v, i, 'of', t); });
+c.on('progress', function(v, i, t) { console.log(Math.floor(i/t*100)+"% complete"); });
 c.on('done', function(v) { console.log("last result", v); });
 c.start();
 
