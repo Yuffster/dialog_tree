@@ -1,7 +1,8 @@
 // Web Worker for Markov.
 
 let prefix = ""; // Incoming command prefix.
-let namespace = "_markov"; // Storage namespace.
+let namespace = "_markovv"; // Storage namespace.
+var db = false;
 
 let loop = false;
 onmessage = function(e) {
@@ -60,6 +61,23 @@ var API = {
             }
         }());
         return [gen, n];
+    },
+    get: function(key) {
+        return db.get(key);
+    },
+    set: function(key, val) {
+        return db.set(key, val);
+    }
+}
+
+class Deferred {
+    callback(data) {
+        this._result = data;
+        if (this._oncomplete) this._oncomplete(data);
+    }
+    set oncomplete(fun) {
+        if (this._result) fun(result);
+        else this._oncomplete = fun;
     }
 }
 
@@ -97,8 +115,13 @@ class EventLoop {
             this._generators.set(id, gen);
             this._counts.set(id, counter);
             this._run_loop();
+        // Or we're waiting on a callback...
+        } else if (result instanceof Deferred) {
+            result.oncomplete = (r) => postMessage([id, 'done', [r]]);
         // If we didn't get a generator, just send the result.
-        } else postMessage([id, 'done', [result]]);
+        } else {
+            postMessage([id, 'done', [result]]);
+        }
     }
 
     _run_loop() {
@@ -138,13 +161,63 @@ class EventLoop {
 
 }
 
-class Deferred {
-    callback(data) {
-        this._result = data;
-        if (this._oncomplete) this._oncomplete(data);
+class DB {
+
+    constuctor() {
+
     }
-    set oncomplete(fun) {
-        if (this._result) fun(result);
-        else this._oncomplete = fun;
+
+    _getDB(fun) {
+        var open = indexedDB.open(namespace, 1);
+        open.onupgradeneeded = () => this._setSchema(open.result);
+        if (fun) open.onsuccess = () => fun(open.result);
     }
+
+    _setSchema(db) {
+        var store = db.createObjectStore(namespace, {keyPath: "id"});
+    }
+
+    set(key, val, fun) {
+        var d = null;
+        if (!fun) {
+            d = new Deferred();
+            fun = d.callback;
+        }
+        this._getDB((db) => {
+            var tx = db.transaction(namespace, "readwrite");
+            var store = tx.objectStore(namespace);
+            store.put({id: key, data: val});
+            tx.oncomplete = function() {
+                fun.apply(d, [true]);
+                db.close();
+            };
+        });
+        if (d) return d;
+    }
+
+    get(key, fun) {
+        var d = null;
+        if (!fun) {
+            d = new Deferred();
+            fun = d.callback;
+        }
+        this._getDB((db) => {
+            var tx = db.transaction(namespace, "readwrite");
+            var store = tx.objectStore(namespace);
+            var get = store.get(key);
+            get.onsuccess = () => {
+                var result = (get.result) ? get.result.data : false;
+                if (result) {
+                    fun.apply(d, [result]);
+                } else {
+                    fun.apply(d, []);
+                }
+            }
+            tx.oncomplete = () => db.close();
+        });
+        if (d) return d;
+    }
+
 }
+
+db = new DB();
