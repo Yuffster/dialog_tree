@@ -38,7 +38,8 @@ def inject_assets():
         k = k.replace('/', '.')
         named_views[k] = v
     for s in get_assets('scripts', 'js'):
-        scripts.append('scripts/'+s)
+        if ('workers/' not in s):
+            scripts.append('scripts/'+s)
     return dict(
         scripts=scripts,
         views=named_views.items()
