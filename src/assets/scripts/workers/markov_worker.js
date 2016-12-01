@@ -1,9 +1,9 @@
 // Web Worker for Markov.
 
 let prefix = ""; // Incoming command prefix.
-var namespace = ""; // localStorage key namespace.
+let namespace = "_markov"; // Storage namespace.
 
-var loop = false;
+let loop = false;
 onmessage = function(e) {
     // We're expecting the data packet to be an array we can
     // pop from.
@@ -45,6 +45,21 @@ var API = {
          * you should really yield the current progress.
          */
         return str;
+    },
+    async: function(n) {
+        /**
+         * Async generator example -- if you need to wait for a callback,
+         * return a Deferred and call d.callback when you're ready.
+         */
+        var gen = (function*(){
+            for (let i=1;i<=n;++i) {
+                let d = new Deferred();
+                let c = i;
+                setTimeout(function() { d.callback(c); }, 100);
+                yield(d);
+            }
+        }());
+        return [gen, n];
     }
 }
 
@@ -91,14 +106,24 @@ class EventLoop {
         // the handler ID.
         for (let [id, gen] of this._generators.entries()) {
             let {value, done} = gen.next();
-            value = value || null;
             let c = this._counts.get(id);
-            postMessage([id, 'progress', [value, c.current, c.total]]);
-            if (done == true) {
-                postMessage([id, 'done', [value]]);
-                this._generators.delete(id);
-                this._counts.delete(id);
-            } else c.current++;
+            value = value || null;
+            // If we returned a deferred object from the generator because
+            // we're waiting on an async call.
+            if (value instanceof Deferred) {
+                value.oncomplete = (v) => {
+                    postMessage([id, 'progress', [v, c.current, c.total]]);
+                };
+                c.current++;
+            // Otherwise just post the yielded value.
+            } else {
+                postMessage([id, 'progress', [value, c.current, c.total]]);
+                if (done == true) {
+                    postMessage([id, 'done', [value]]);
+                    this._generators.delete(id);
+                    this._counts.delete(id);
+                } else c.current++;
+            }
         }
         // If we have at least one active generator, set an interval so
         // this will be called again.
@@ -111,4 +136,15 @@ class EventLoop {
         }
     }
 
-}   
+}
+
+class Deferred {
+    callback(data) {
+        this._result = data;
+        if (this._oncomplete) this._oncomplete(data);
+    }
+    set oncomplete(fun) {
+        if (this._result) fun(result);
+        else this._oncomplete = fun;
+    }
+}
