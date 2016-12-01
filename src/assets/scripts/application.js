@@ -42,7 +42,6 @@ class ListTemplate extends Template {
         // Set node properties.
         if (node instanceof Object) for (let k in node) obj[k] = node[k];
         this._nodes.push(obj);
-        this.render();
     }
     addNodes(nodes) {
         for (let n of nodes) this.addNode(n);
@@ -135,8 +134,24 @@ delegate('#markov-ui .node-list:last-child li', 'click', function(evt, target) {
     addNode(words, id);
 });
 
-var m = new Markov();
-m.integrate('we wanted to have fun we wanted to have fun we went to the mall we wanted to have fun we went to the beach we went to have fun we wanted to have fun')
+var txt = localStorage.getItem('corpus_FB')
+//var m = new Markov();
+
+//m.integrate(txt);
+//m.integrate('we wanted to have fun we went to the mall we wanted to have fun')
+//m.loadStorage();
+
+var w = new WorkerAPI('markov_worker', "MRKV_");
+
+var c = w.request('count', 5);
+c.on('progress', function(v, i, t) { console.log(v, i, 'of', t); });
+c.on('done', function(v) { console.log("last result", v); });
+c.start();
+
+var e = w.request('echo', 'hello, world');
+e.on('progress', function(v, i, t) { console.log(v, i, 'of', t); });
+e.on('done', function(v) { console.log("last result", v); });
+e.start();
 
 function addNode(word, id) {
     var data = m.getNodesFollowing(word);
@@ -154,8 +169,7 @@ function addNode(word, id) {
     d.render();
 }
 
-addNode(m.getNode());
+//addNode(m.getRandomNode())
 
-console.log("ohai")
 
 };
