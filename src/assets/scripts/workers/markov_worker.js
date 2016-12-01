@@ -67,8 +67,38 @@ var API = {
     },
     set: function(key, val) {
         return db.set(key, val);
-    }
+    },
+    integrate: integrate
 }
+
+function integrate(text, size=1) {
+    db = db || new DB();
+    var chunks = text.split(" ");
+    var gen = (function* g() {
+        var prev = false;
+        // We can increase the size of the corpus for larger
+        // ngram sizes by shifting by the number of tokens.
+        for (let i=size;i--;i>0) {
+            if (i !== size) chunks.pop();
+            for (let word of chunks) {
+                // Add to total of times this word has followed the previous.
+                if (prev !== false) {
+                    prev[word] = prev[word] || 0;
+                    prev[word]++;
+                    db.set(prev_word, prev);
+                }
+                prev_word = word;
+                var d = new Deferred();
+                db.get(prev_word, (r) => {
+                    prev = r || {};
+                    d.callback(r);
+                });
+                yield d;
+            }
+        }
+    }());
+    return [gen, chunks.length*size-size-1];
+};
 
 class Deferred {
     callback(data) {
