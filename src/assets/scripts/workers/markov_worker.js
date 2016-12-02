@@ -1,7 +1,7 @@
 // Web Worker for Markov.
 
 let prefix = ""; // Incoming command prefix.
-let namespace = "_dialog"; // Storage namespace.
+let namespace = "_dialog10"; // Storage namespace.
 var db = false;
 
 let loop = false;
@@ -81,9 +81,9 @@ var API = {
         db.count((c) => {
             var id = Math.floor(Math.random()*(c-1))+1;
             db.get(id, (r)=>{
-                d.callback(r.node);
+                d.callback((r) ? r.node : false);
             }, true)
-        });
+        }, true);
         return d;
     },
     integrate: integrate
@@ -91,7 +91,7 @@ var API = {
 
 function integrate(text, size=1) {
     db = db || new DB();
-    var chunks = chunk(text, size);
+    var chunks = chunk(text.split(/[\s+]/), size);
     var gen = (function* g() {
         var prev = false;
         for (let word of chunks) {
@@ -119,17 +119,10 @@ function integrate(text, size=1) {
 };
 
 
-function chunk(txt, size=1) {
-    var out = [];
-    for (let i = 0; i<size+1; i++) {
-        let arr = txt.split(/\s+?([\w?!.']*)\s+?/g);
-        // Remove one element to shift words.
-        // This increases the effective corpus size.
-        if (i > 0) arr.splice(0, i);
-        while(arr.length>0) {
-            if (arr.length<size) continue;
-            out.push(arr.splice(0, size).join(" "));
-        }
+function chunk(arr, size=1) {
+    var out = [];    
+    while(arr.length>size) {
+        out.push(arr.splice(0, size).join(" "));
     }
     return out;
 }
@@ -147,7 +140,7 @@ class Deferred {
 
 class EventLoop {
 
-    constructor(interval=100) {
+    constructor(interval=10) {
         this._generators = new Map();
         this._counts = new Map();
         this._active = false;

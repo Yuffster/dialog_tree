@@ -17,7 +17,8 @@ class Feed {
 		this._pending = 0;
 		this._corpus = "";
 		this.getFeed();
-		this._max_pages = Infinity;
+		this._max_pages = 1;
+		this._markov = new Markov();
 		this._pages = 0;
 	}
 
@@ -75,8 +76,7 @@ class Feed {
 	done() {
 		this._pending--;
 		if (this._pending == 0) {
-			console.log('corpus size:', Math.floor(this.size), 'words');
-			this.saveLocally();
+			//this.saveLocally();
 		}
 	}
 
@@ -84,7 +84,7 @@ class Feed {
 		if (!str) return;
 		// Strip URLs.
 		str = str.replace(/https?:\/\/([^ ]*)/g, '');
-		this._corpus += '\n\n'+str;
+		this._markov.integrate(str);
 	}
 
 	get pages() {
@@ -100,7 +100,7 @@ class Feed {
 	}
 
 	saveLocally() {
-		localStorage.setItem('corpus_FB', this._corpus);
+		//localStorage.setItem('corpus_FB', this._corpus);
 	}
 
 }

@@ -1,33 +1,126 @@
 body {
     font-family: sans-serif;
     background-color: #132228;
-    color: #efefef;
-}
-h1 {
     color: #79d1f7;
-    font-weight: 100;
-}
-#markov-ui {
-    display: flex;
-    height: 400px;
-}
-.node-list {
     margin: 0;
     padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+#header {
+    font-family: 'Roboto', sans-serif;
+    overflow:hidden;
+    background: rgba(0, 0, 0, .3);
+    margin-top: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .8);
+    padding-left: 10px;
+}
+
+#header h1 {
+    text-shadow: 1px 1px #000;
+    color: #79d1f7;
+    font-weight: 100;
+    width: 260px;
+    float: left;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+#header h1 a.litany {
+    font-family: 'Dosis';
+    font-weight: 200;
+    color: #fff;
+    font-variant: none;
+    position: absolute;
+    right: 20px;
+    text-decoration: none;
+}
+
+#header h1 a.litany i {
+    transition: text-shadow 1s;
+}
+
+#header h1 a.litany span {
+    opacity: .6;
+}
+
+#header h1 a.litany:hover i {
+    text-shadow: 0 0 6px rgba(101, 289, 227, 1);
+}
+
+#tab-select {
+    margin-top: 10px;
+}
+#tab-select a {
+    padding-right: 20px;
+    color: #79d1f7;
+    text-decoration: none;
+    opacity: .6;
+    transition: opacity 1s;
+}
+
+#tab-select a:hover,#tab-select a.active {
+    opacity: 1;
+}
+
+#tabs .tab {
+    display:none;
+}
+
+#tabs .tab.active {
+    display: block;
+}
+
+
+#markov-ui {
+    display: flex;
+    max-height: 400px;
+    width: 100%;
+    overflow: hidden;
+}
+
+#output {
+    font-family: 'Roboto', sans-serif;
+    text-shadow: 1px 1px #000;
+}
+
+.node-list-container {
+    height: 100%;
+    width: 100%;
+    overflow:hidden;
+}
+
+.node-list {
+    width: 100%;
+    background: rgba(101, 289, 227, .1);
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, .05);
+    box-shadow: inset 5px 5px 100px rgba(255, 255, 255, .02);
     list-style: none;
     margin-right: 20px;
     min-width: 150px;
     cursor: default;
-}
-.node-list li {
-    border: 1px solid #efefef;
-    position: relative;
-    text-align: center;
-    opacity: .6;
+    opacity:.7;
 }
 
-.node-list:last-child {
+.node-list li {
+    position: relative;
+    text-align: center;
+    max-width: 200px;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+
+#markov-ui div {
+    opacity: .3;
+    transform-origin: top center;
+    transform: scale(.7);
+}
+
+#markov-ui div:last-child {
     cursor: pointer;
+    opacity:1;
+    transform: scale(1);
 }
 
 .node-list li .words {
@@ -44,16 +137,166 @@ h1 {
 
 .node-list li.selected {
     color: #000;
-    background-color: #79d1f7;
+    background-color: rgba(101, 289, 227, 1);
     opacity: 1;
-}
-
-.node-list li.selected .prob {
-    color: #999;
 }
 
 #output {
     padding-bottom: 20px;
     color: #79d1f7;
     text-transform: uppercase;
+}
+
+#ui-stuff {
+    box-shadow: inset 10px 10px 100px rgba(0, 0, 0, .5);
+    position:absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    z-index: -1;
+    overflow:hidden;
+}
+
+.progress {
+    width: 100%;
+    background: rgba(255, 255, 255, .05);
+    position: absolute;
+    bottom: 25px;
+}
+
+#progress-meter {
+    background: rgba(101, 289, 227, .6);
+    width: 0;
+    transition: width;
+    opacity: .3;
+    height: 1px;
+    position: absolute;
+    right: 0;
+    bottom: -20px;
+    box-shadow: 0 0 10px rgba(101, 289, 227, 1);
+}
+
+#progress-text {
+    color: #79d1f7;
+    font-family: monospace;
+    position: absolute;
+    right: 20px;
+    opacity: .6;
+}
+
+#node-background {
+    margin: 0;
+    position: absolute;
+    top:0;
+    left:0;
+    z-index: -1;
+    width: 100%;
+    height: 90%;
+    overflow:hidden;
+}
+
+#node-background .container {
+    box-shadow: inset -2px 9px 10px #132228;
+    height: 100%;
+    padding: 0 5%;
+    color: transparent;
+    text-shadow: 0px 0px 2px rgb(121, 209, 247);
+    font-weight: lighter;
+    opacity: .3;
+    vertical-align: text-bottom;
+    overflow: hidden;
+    position: absolute;
+}
+
+#node-background #secondary-container {
+    left: 100px;
+    transform: scale(.8);
+    text-shadow: 0px 0px 3px rgba(101, 289, 227, .5);
+}
+
+#node-background #overflow-container {
+    left: 250px;
+    top: 150px;
+    transform: scale(1);
+    opacity: .5;
+    text-shadow: 0px 0px 3px rgba(101, 289, 227, .5);
+}
+
+#node-background #overflow-container2 {
+    right: 20px;
+    bottom: 0;
+    transform: scale(.9);
+    opacity: .7;
+    text-shadow: 0px 0px 1px rgba(101, 289, 227, .4);
+}
+
+#node-background #overflow-container3 {
+    right: 300px;
+    top: 50px;
+    transform: scale(1);
+    opacity: .6;
+    text-shadow: 0px 0px 3px rgba(101, 289, 227, .5);
+}
+ 
+#node-background .container  p {
+    width: 300px;
+    text-align: left;
+}
+
+#node-background .container {
+    text-align: center;
+    text-transform: uppercase;
+}
+
+#spinner {
+    color: rgba(101, 289, 227, .9);
+    border: 1px solid rgba(101, 289, 227, .9);
+    border-top: 1px solid rgba(255, 255, 255, .2);
+    border-left: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 150px;
+    box-shadow: 0 0 35px rgba(101, 289, 227, .5), 
+    inset 0 0 10px rgba(101, 289, 227, 1);
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    opacity: .3;
+    animation: spin 3s linear infinite;
+    z-index: -1;
+}
+
+#spin-ui {
+    opacity: 0;
+    transition: opacity 2s;
+}
+
+body.loading #spinner {
+    animation: spin 3s linear infinite, pulse 3s linear infinite;
+}
+
+body.loading #spin-ui {
+    opacity: 1;
+    transition: opacity 2s;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    } 100% { transform: rotate(360deg); };
+}
+
+@keyframes pulse {
+    0% {
+        opacity: .1;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: .1;
+    };
 }
