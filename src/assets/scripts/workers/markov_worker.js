@@ -1,7 +1,7 @@
 // Web Worker for Markov.
 
 let prefix = ""; // Incoming command prefix.
-let namespace = "_gegst"; // Storage namespace.
+let namespace = "_dialog"; // Storage namespace.
 var db = false;
 
 let loop = false;
@@ -63,7 +63,12 @@ var API = {
         return [gen, n];
     },
     get: function(key) {
-        return db.get(key);
+        var d = new Deferred();
+        db.get(key, (r) => {
+            var res = (r && r.data) ? r.data : {};
+            if (r) d.callback(res);
+        });
+        return d;
     },
     set: function(key, val) {
         return db.set(key, val);
@@ -72,9 +77,14 @@ var API = {
         return db.count();
     },
     getRandomNode() {
+        var d = new Deferred();
         db.count((c) => {
-            Math.random()
+            var id = Math.floor(Math.random()*(c-1))+1;
+            db.get(id, (r)=>{
+                d.callback(r.node);
+            }, true)
         });
+        return d;
     },
     integrate: integrate
 }
@@ -117,6 +127,7 @@ function chunk(txt, size=1) {
         // This increases the effective corpus size.
         if (i > 0) arr.splice(0, i);
         while(arr.length>0) {
+            if (arr.length<size) continue;
             out.push(arr.splice(0, size).join(" "));
         }
     }
@@ -161,7 +172,7 @@ class EventLoop {
         //
         // We're expecting a generator command to return an array
         // containing [generator, total].
-        if (result[0] && result[0].next) {
+        if (Array.isArray(result) && result[0] && result[0].next) {
             let [gen, total] = result;
             let counter = {current:0, total:total};
             postMessage([id, 'start', [total]]);
@@ -266,8 +277,9 @@ class DB {
         this._getDB((db) => {
             var tx = db.transaction(namespace, "readwrite");
             var store = tx.objectStore(namespace);
-            if (!indexed) store = store.index('nodeIndex');
-            var get = store.get([key]);
+            var get;
+            if (indexed) get = store.get(key);
+            else get = store.index('nodeIndex').get([key]);
             get.onsuccess = () => {
                 var result = (get.result) ? get.result : false;
                 if (result) {

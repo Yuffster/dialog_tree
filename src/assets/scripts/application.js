@@ -134,42 +134,27 @@ delegate('#markov-ui .node-list:last-child li', 'click', function(evt, target) {
     addNode(words, id);
 });
 
-var txt = localStorage.getItem('corpus_FB')
-//var m = new Markov();
 
-//m.integrate(txt);
-//m.integrate('we wanted to have fun we went to the mall we wanted to have fun')
-//m.loadStorage();
-
-var w = new WorkerAPI('markov_worker');
-
-var c = w.request('count', 5);
-c.on('progress', function(v, i, t) { console.log(Math.floor(i/t*100)+"% complete"); });
-c.on('done', function(v) { console.log("last result", v); });
-c.start();
-
-var e = w.request('echo', 'hello, world');
-e.on('progress', function(v, i, t) { console.log(v, i, 'of', t); });
-e.on('done', function(v) { console.log("last result", v); });
-e.start();
-
-function addNode(word, id) {
-    var data = m.getNodesFollowing(word);
-    var nodes = [];
-    for (let k in data) {
-        let node = {};
-        let esc = k.replace(/\W/g, '_');
-        node.words = k;
-        node.prob = data[k];
-        node.id = esc+Math.floor(Math.random()*1000)+new Date().getTime();
-        nodes.push(node);  
-    }
-    d.addWord(word, id);
-    d.addNode({'nodes':nodes})
-    d.render();
+function addNode(word) {
+    m.getNodesFollowing(word, (data) => {
+        if (!data) return;
+        var nodes = [];
+        for (let k in data) {
+            let node = {};
+            let esc = k.replace(/\W/g, '_');
+            node.words = k;
+            node.prob = data[k];
+            node.id = esc+Math.floor(Math.random()*1000)+new Date().getTime();
+            nodes.push(node);  
+        }
+        d.addWord(word, 345);
+        d.addNode({'nodes':nodes})
+        d.render();
+    });
 }
 
-//addNode(m.getRandomNode())
-
+//var txt = localStorage.getItem('corpus_FB')
+var m = new Markov();
+m.getRandomNode(addNode);
 
 };

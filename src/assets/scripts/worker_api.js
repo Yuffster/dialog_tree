@@ -19,7 +19,7 @@ class WorkerAPI {
     constructor(name, cmdPrefix="") {
         // Send the command prefix to the worker.
         this._prefix = cmdPrefix || name.toUpperCase();
-        this._worker = new Worker("/scripts/"+name+'.js');
+        this._worker = new Worker("/scripts/workers/"+name+'.js');
         this._worker.postMessage(['__WKRPREFIX', this._prefix]);
         // Set up event handler.
         this._worker.onmessage = (e) => this._handleMessage(e);
