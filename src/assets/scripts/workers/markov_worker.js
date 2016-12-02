@@ -1,7 +1,7 @@
 // Web Worker for Markov.
 
 let prefix = ""; // Incoming command prefix.
-let namespace = "_markovv"; // Storage namespace.
+let namespace = "_gegst"; // Storage namespace.
 var db = false;
 
 let loop = false;
@@ -68,37 +68,60 @@ var API = {
     set: function(key, val) {
         return db.set(key, val);
     },
+    count: function() {
+        return db.count();
+    },
+    getRandomNode() {
+        db.count((c) => {
+            Math.random()
+        });
+    },
     integrate: integrate
 }
 
 function integrate(text, size=1) {
     db = db || new DB();
-    var chunks = text.split(" ");
+    var chunks = chunk(text, size);
     var gen = (function* g() {
         var prev = false;
-        // We can increase the size of the corpus for larger
-        // ngram sizes by shifting by the number of tokens.
-        for (let i=size;i--;i>0) {
-            if (i !== size) chunks.pop();
-            for (let word of chunks) {
-                // Add to total of times this word has followed the previous.
-                if (prev !== false) {
-                    prev[word] = prev[word] || 0;
-                    prev[word]++;
-                    db.set(prev_word, prev);
-                }
-                prev_word = word;
-                var d = new Deferred();
-                db.get(prev_word, (r) => {
-                    prev = r || {};
-                    d.callback(r);
-                });
-                yield d;
+        for (let word of chunks) {
+            var d = new Deferred();
+            // Add to total of times this word has followed the previous.
+            if (prev !== false) {
+                prev[word] = prev[word] || 0;
+                prev[word]++;
+                db.set(prev_word, prev);
             }
+            prev_word = word;
+            var d = new Deferred();
+            db.get(prev_word, (r) => {
+                prev = (r) ? r.data : {};
+                if (!r) {
+                    db.set(prev_word, {}, ()=> d.callback(prev_word));
+                } else {
+                    d.callback(r.node);
+                }
+            });
+            yield d;
         }
     }());
-    return [gen, chunks.length*size-size-1];
+    return [gen, chunks.length];
 };
+
+
+function chunk(txt, size=1) {
+    var out = [];
+    for (let i = 0; i<size+1; i++) {
+        let arr = txt.split(/\s+?([\w?!.']*)\s+?/g);
+        // Remove one element to shift words.
+        // This increases the effective corpus size.
+        if (i > 0) arr.splice(0, i);
+        while(arr.length>0) {
+            out.push(arr.splice(0, size).join(" "));
+        }
+    }
+    return out;
+}
 
 class Deferred {
     callback(data) {
@@ -113,7 +136,7 @@ class Deferred {
 
 class EventLoop {
 
-    constructor(interval=1000) {
+    constructor(interval=100) {
         this._generators = new Map();
         this._counts = new Map();
         this._active = false;
@@ -193,10 +216,6 @@ class EventLoop {
 
 class DB {
 
-    constuctor() {
-
-    }
-
     _getDB(fun) {
         var open = indexedDB.open(namespace, 1);
         open.onupgradeneeded = () => this._setSchema(open.result);
@@ -204,7 +223,13 @@ class DB {
     }
 
     _setSchema(db) {
-        var store = db.createObjectStore(namespace, {keyPath: "id"});
+        var store = db.createObjectStore(
+            namespace, {
+                keyPath: "id",
+                autoIncrement: true
+            }
+        );
+        store.createIndex("nodeIndex", ["node"]);
     }
 
     set(key, val, fun) {
@@ -213,19 +238,26 @@ class DB {
             d = new Deferred();
             fun = d.callback;
         }
-        this._getDB((db) => {
-            var tx = db.transaction(namespace, "readwrite");
-            var store = tx.objectStore(namespace);
-            store.put({id: key, data: val});
-            tx.oncomplete = function() {
-                fun.apply(d, [true]);
-                db.close();
-            };
+        this.get(key, (result) => {
+            if (!result) result = {'node':key, 'data':{}};
+            this._getDB((db) => {
+                var tx = db.transaction(namespace, "readwrite");
+                var store = tx.objectStore(namespace);
+                result.data = val;
+                var req = store.put(result);
+                req.onsuccess = () => {
+                    fun.apply(d, [true]);
+                };
+                tx.oncomplete = function() {
+                    result.data = val;
+                    db.close();
+                };
+            });
         });
         if (d) return d;
     }
 
-    get(key, fun) {
+    get(key, fun, indexed=false) {
         var d = null;
         if (!fun) {
             d = new Deferred();
@@ -234,15 +266,32 @@ class DB {
         this._getDB((db) => {
             var tx = db.transaction(namespace, "readwrite");
             var store = tx.objectStore(namespace);
-            var get = store.get(key);
+            if (!indexed) store = store.index('nodeIndex');
+            var get = store.get([key]);
             get.onsuccess = () => {
-                var result = (get.result) ? get.result.data : false;
+                var result = (get.result) ? get.result : false;
                 if (result) {
                     fun.apply(d, [result]);
                 } else {
                     fun.apply(d, []);
                 }
             }
+            tx.oncomplete = () => db.close();
+        });
+        if (d) return d;
+    }
+
+    count(fun) {
+        var d = null;
+        if (!fun) {
+            d = new Deferred();
+            fun = d.callback;
+        }
+        this._getDB((db) => {
+            var tx = db.transaction(namespace, "readwrite");
+            var store = tx.objectStore(namespace);
+            var req = store.count();
+            req.onsuccess = () => fun.apply(d, [req.result]);
             tx.oncomplete = () => db.close();
         });
         if (d) return d;
