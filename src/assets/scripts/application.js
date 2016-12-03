@@ -128,7 +128,7 @@ d.attach('tab-markov');
 
 d.render();
 
-delegate('#markov-ui .node-list:last-child li', 'click', function(evt, target) {
+delegate('#markov-ui div:last-child li', 'click', function(evt, target) {
     target.classList.add('selected');
     var words = target.dataset.words,
         id = target.id;
@@ -176,7 +176,7 @@ function addNode(word) {
 var progress = document.getElementById('progress-meter');
 var ptext = document.getElementById('progress-text');
 var m = new Markov();
-var test = localStorage.getItem('corpus_FB').split("\n\n").splice(0, 100).join("\n\n")
+var test = localStorage.getItem('corpus_FB')
 var lastWord = false;
 
 
@@ -188,7 +188,7 @@ var last_p = -1;
 var last_value = "";
 m.integrate(test, {
     progress: (value, i, t) => {
-        bg2.append(value);
+        bg2.append(value+" ");
         if (Math.floor(Math.random()*12)==0) {
             bg2.append(document.createElement("br"));
         }

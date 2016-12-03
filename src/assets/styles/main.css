@@ -64,6 +64,8 @@ body {
 }
 
 #tabs .tab {
+    padding-top: 20px;
+    padding-left: 20px;
     display:none;
 }
 
@@ -74,7 +76,6 @@ body {
 
 #markov-ui {
     display: flex;
-    max-height: 400px;
     width: 100%;
     overflow: hidden;
 }
@@ -90,9 +91,12 @@ body {
     overflow:hidden;
 }
 
+.word-node {
+    background: rgba(101, 289, 227, .1);
+}
+
 .node-list {
     width: 100%;
-    background: rgba(101, 289, 227, .1);
     margin: 0;
     padding: 0;
     border: 1px solid rgba(255, 255, 255, .05);
@@ -100,7 +104,6 @@ body {
     list-style: none;
     margin-right: 20px;
     min-width: 150px;
-    cursor: default;
     opacity:.7;
 }
 
@@ -115,12 +118,25 @@ body {
     opacity: .3;
     transform-origin: top center;
     transform: scale(.7);
+    cursor:default;
 }
 
 #markov-ui div:last-child {
-    cursor: pointer;
     opacity:1;
     transform: scale(1);
+}
+
+#markov-ui div:last-child li {
+    cursor: pointer;
+}
+
+#markov-ui div:last-child ul:empty {
+    border-top: 1px solid rgba(255, 0, 0, .6);
+}
+
+#markov-ui div:last-child ul:empty:after {
+    content: "ERR: end of input";
+    color: rgba(255, 0, 0, .5);
 }
 
 .node-list li .words {
@@ -167,7 +183,7 @@ body {
 #progress-meter {
     background: rgba(101, 289, 227, .6);
     width: 0;
-    transition: width;
+    transition: width .5s;
     opacity: .3;
     height: 1px;
     position: absolute;
@@ -196,7 +212,6 @@ body {
 }
 
 #node-background .container {
-    box-shadow: inset -2px 9px 10px #132228;
     height: 100%;
     padding: 0 5%;
     color: transparent;
@@ -204,34 +219,38 @@ body {
     font-weight: lighter;
     opacity: .3;
     vertical-align: text-bottom;
-    overflow: hidden;
     position: absolute;
+    overflow:hidden;
+}
+
+#node-background .background-nodelist {
 }
 
 #node-background #secondary-container {
-    left: 100px;
+    left: 250px;
     transform: scale(.8);
     text-shadow: 0px 0px 3px rgba(101, 289, 227, .5);
 }
 
 #node-background #overflow-container {
-    left: 250px;
-    top: 150px;
+    top: 6px;
+    left: 200px;
     transform: scale(1);
     opacity: .5;
-    text-shadow: 0px 0px 3px rgba(101, 289, 227, .5);
+    text-shadow: 0px 0px 3px rgba(101, 289, 227, .6);
 }
 
 #node-background #overflow-container2 {
-    right: 20px;
-    bottom: 0;
+    right: 0;
+    width: 50px;
+    bottom: 150px;
     transform: scale(.9);
     opacity: .7;
     text-shadow: 0px 0px 1px rgba(101, 289, 227, .4);
 }
 
 #node-background #overflow-container3 {
-    right: 300px;
+    right: 200px;
     top: 50px;
     transform: scale(1);
     opacity: .6;
@@ -260,7 +279,7 @@ body {
     height: 150px;
     margin: 0 auto;
     position: absolute;
-    right: 20px;
+    right: 50px;
     bottom: 20px;
     opacity: .3;
     animation: spin 3s linear infinite;
@@ -284,7 +303,21 @@ body.loading #spin-ui {
 @keyframes spin {
     0% {
         transform: rotate(0deg);
-    } 100% { transform: rotate(360deg); };
+    }
+    /*
+    50% {
+        transform: rotate(360deg);
+    }
+    10% { transform: rotate(360deg); };
+    30% { transform: rotate(0deg); }
+    35% { transform: rotate(180deg); }
+    40% { transform: rotate(0 deg); }
+    55% {
+        transform: rotate(0deg);
+    } */
+    100% {
+        transform: rotate(360deg); 
+    }
 }
 
 @keyframes pulse {

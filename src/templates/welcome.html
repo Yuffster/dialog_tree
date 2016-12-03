@@ -4,19 +4,19 @@
         <h1><a class="litany" href="#"><i>litany</i></a> Dialog Tree</h1>
         <div id="tab-select">
             <a href="#intro">Integrate</a>
-            <a href="#markov">Generate</a>
+            <a href="#markov" class="active">Generate</a>
             <a href="#share">Share</a>
         </div>
     </div>
     <div id="tabs">
-        <div id="tab-intro" class="active tab">
+        <div id="tab-intro" class="tab">
             <p>Hello, isn't this neat?</p>
             <fb:login-button
               scope="public_profile,email,user_posts"
               onlogin="Facebook();">
             </fb:login-button>
         </div>
-        <div id="tab-markov" class="tab">Loading...</div>
+        <div id="tab-markov" class="tab active">Loading...</div>
     </div>
     <div id="ui-stuff">
     <div class="progress">
@@ -29,7 +29,7 @@
         <div id="overflow-container" class="background-nodelist container"></div>
         <div id="overflow-container2" class="background-nodelist container"></div>
          <div id="overflow-container3" class="background-nodelist container"></div>
-        <div id="spin-ui"><div id="spinner"></div></div>
+        <div id="spin-ui"><div id="spinner"><!--ᕕ( ᐛ ) ᕗ--></div></div>
     </div>
     </div>
 {% endblock %}
