@@ -80,14 +80,21 @@ var API = {
     getRandomNode() {
         var d = new Deferred();
         db.count((c) => {
-            var id = Math.floor(Math.random()*(c-1))+1;
+            if (c == 0) {
+                return d.callback(false);
+            }
+            var id = Math.floor(Math.random()*(c-1));
             db.get(id, (r)=>{
                 d.callback((r) ? r.node : false);
             }, true)
         }, true);
         return d;
     },
-    integrate: integrate
+    integrate: integrate,
+    clearCorpus: function() {
+        db._drop();
+        return true;
+    }
 }
 
 function integrate(text, size=1) {
