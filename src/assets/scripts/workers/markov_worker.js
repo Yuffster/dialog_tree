@@ -80,13 +80,13 @@ var API = {
     getRandomNode() {
         var d = new Deferred();
         db.count((c) => {
-            if (c == 0) {
+            if (c === 0) {
                 return d.callback(false);
             }
-            var id = Math.floor(Math.random()*(c-1));
+            var id = Math.floor(Math.random()*c)+1;
             db.get(id, (r)=>{
                 d.callback((r) ? r.node : false);
-            }, true)
+            }, true);
         }, true);
         return d;
     },
@@ -205,6 +205,7 @@ class EventLoop {
             try {
                 result = gen.next();
             } catch(e) {
+                console.error(e.message);
                 entry.emit('error', e.message);
                 continue;
             }
@@ -336,6 +337,19 @@ class DB {
             tx.oncomplete = () => db.close();
         });
         if (d) return d;
+    }
+
+    getOrCreate(key, fun) {
+        var d = null;
+        if (!fun) {
+            d = new Deferred();
+            fun = d.callback;
+        }
+        this.get(key, (result) => {
+            if (!result) {
+                result = {'node':key, 'data':{}};
+            } fun.apply(d, [result]);
+        });
     }
 
     count(fun) {
