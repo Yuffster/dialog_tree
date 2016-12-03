@@ -63,6 +63,7 @@ var API = {
         return [gen, n];
     },
     get: function(key) {
+        if (!key) return false;
         var d = new Deferred();
         db.get(key, (r) => {
             var res = (r && r.data) ? r.data : {};
@@ -145,6 +146,7 @@ class EventLoop {
         this._counts = new Map();
         this._active = false;
         this._interval = interval;
+        this._waiting = {};
     }
 
     /**
@@ -168,16 +170,17 @@ class EventLoop {
         if (Array.isArray(result) && result[0] && result[0].next) {
             let [gen, total] = result;
             let counter = {current:0, total:total};
-            postMessage([id, 'start', [total]]);
+            loop.get(id).emit('start', total);
             this._generators.set(id, gen);
             this._counts.set(id, counter);
             this._run_loop();
         // Or we're waiting on a callback...
         } else if (result instanceof Deferred) {
-            result.oncomplete = (r) => postMessage([id, 'done', [r]]);
+            result.oncomplete = (r) => loop.get(id).emit('done', r);
+            result.onerror = (r) => loop.get(id).emit('error', r);
         // If we didn't get a generator, just send the result.
         } else {
-            postMessage([id, 'done', [result]]);
+            loop.get(id).emit('done', result);
         }
     }
 
@@ -185,21 +188,35 @@ class EventLoop {
         // Loop through all the generators and send a progress update to
         // the handler ID.
         for (let [id, gen] of this._generators.entries()) {
-            let {value, done} = gen.next();
+            // Wait for the Deferred object from the last generator to
+            // finish up.
+            if (this._waiting[id]) continue;
+            // Process the next item in the generator.
+            let result;
+            let entry = loop.get(id);
+            try {
+                result = gen.next();
+            } catch(e) {
+                entry.emit('error', e.message);
+                continue;
+            }
+            let {value, done} = result;
             let c = this._counts.get(id);
             value = value || null;
             // If we returned a deferred object from the generator because
             // we're waiting on an async call.
             if (value instanceof Deferred) {
                 value.oncomplete = (v) => {
-                    postMessage([id, 'progress', [v, c.current, c.total]]);
+                    entry.emit('progress', v, c.current, c.total);
+                    this._waiting[id] = false;
                 };
+                this._waiting[id] = true;
                 c.current++;
             // Otherwise just post the yielded value.
             } else {
-                postMessage([id, 'progress', [value, c.current, c.total]]);
+                entry.emit('progress', value, c.current, c.total);
                 if (done == true) {
-                    postMessage([id, 'done', [value]]);
+                    entry.emit('done', value);
                     this._generators.delete(id);
                     this._counts.delete(id);
                 } else c.current++;
@@ -213,6 +230,18 @@ class EventLoop {
         // Otherwise, just chill until we get some other command.
         } else {
             this._active = false;
+        }
+    }
+
+    emit(type, ...data) {
+        postMessage(['GLOBAL', type, data]);
+    }
+
+    get(id) {
+        return {
+            emit: function(type, ...data) {
+                postMessage([id, type, data]);
+            }
         }
     }
 
@@ -236,14 +265,23 @@ class DB {
         store.createIndex("nodeIndex", ["node"]);
     }
 
+    /**
+     * Does what it says on the tin - drops the database.
+     *
+     * Obviously only use this if you want to lose all your data.
+     */
+    _drop() {
+        console.log("Dropping DB:", namespace);
+        indexedDB.deleteDatabase(namespace);
+    }
+
     set(key, val, fun) {
         var d = null;
         if (!fun) {
             d = new Deferred();
             fun = d.callback;
         }
-        this.get(key, (result) => {
-            if (!result) result = {'node':key, 'data':{}};
+        this.getOrCreate(key, (result) => {
             this._getDB((db) => {
                 var tx = db.transaction(namespace, "readwrite");
                 var store = tx.objectStore(namespace);
@@ -253,7 +291,6 @@ class DB {
                     fun.apply(d, [true]);
                 };
                 tx.oncomplete = function() {
-                    result.data = val;
                     db.close();
                 };
             });
@@ -271,8 +308,15 @@ class DB {
             var tx = db.transaction(namespace, "readwrite");
             var store = tx.objectStore(namespace);
             var get;
-            if (indexed) get = store.get(key);
-            else get = store.index('nodeIndex').get([key]);
+            try {
+                if (indexed) {
+                    get = store.get(key);
+                } else {
+                    get = store.index('nodeIndex').get([key]);
+                }
+            } catch (e) {
+                return;
+            }
             get.onsuccess = () => {
                 var result = (get.result) ? get.result : false;
                 if (result) {

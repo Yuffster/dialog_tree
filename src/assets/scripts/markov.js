@@ -20,7 +20,6 @@ class Markov {
             if (funs.progress) funs.progress(v, i, t);
         });
         req.on('done', function(v) {
-            console.log('done integrating');
             if (funs.done) funs.done(v);
         });
         req.start();
