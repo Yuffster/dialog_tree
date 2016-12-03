@@ -102,6 +102,7 @@ function integrate(text, size=1) {
     var chunks = chunk(text.split(/[\s+]/), size);
     var gen = (function* g() {
         var prev = false;
+        var prev_word = false;
         for (let word of chunks) {
             var d = new Deferred();
             // Add to total of times this word has followed the previous.
@@ -129,7 +130,7 @@ function integrate(text, size=1) {
 
 function chunk(arr, size=1) {
     var out = [];    
-    while(arr.length>size) {
+    while(arr.length>=size) {
         out.push(arr.splice(0, size).join(" "));
     }
     return out;
