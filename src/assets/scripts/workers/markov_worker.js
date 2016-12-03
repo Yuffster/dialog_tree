@@ -1,7 +1,7 @@
 // Web Worker for Markov.
 
 let prefix = ""; // Incoming command prefix.
-let namespace = "_dialog10"; // Storage namespace.
+let namespace = "_dialog_litany_io"; // Storage namespace.
 var db = false;
 
 let loop = false;
