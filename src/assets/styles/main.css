@@ -281,6 +281,40 @@ body {
     text-transform: uppercase;
 }
 
+#record-ui {
+    overflow:hidden;
+    opacity:0;
+    transition: opacity 1s;
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    bottom: 0;
+    right: 10;
+}
+
+body.recording #record-ui {
+    opacity: 1;
+}
+
+#record-ui .dot {
+    color: white;
+    border: 1px solid rgba(255, 255, 255, .8);
+    border-top: 1px solid rgba(255, 0, 0, .9);
+    border-left: 1px solid rgba(255, 0, 0, .9);
+    border-radius: 25px;
+    box-shadow: 0 0 35px rgba(255, 0, 0, .5), 
+                inset 0 0 10px rgba(255, 0, 0, 1);
+    width: 25px;
+    height: 25px;
+    margin: 0 auto;
+    position: absolute;
+    right: 25px;
+    bottom: 10px;
+    opacity: .3;
+    z-index: -1;
+    animation: spin 3s linear infinite, pulse 3s linear infinite;
+}
+
 #spinner {
     color: rgba(101, 289, 227, .9);
     border: 1px solid rgba(101, 289, 227, .9);

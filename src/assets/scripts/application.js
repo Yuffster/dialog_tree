@@ -162,13 +162,18 @@ class UI {
     }
 
     integrateSpeech() {
+        if (!webkitSpeechRecognition) return false;
         var recognition = new webkitSpeechRecognition();
         recognition.interimResults = true;
         recognition.onresult = (event) => {
             var transcript = event.results[0][0].transcript;
             this._els.transcript.innerHTML = transcript;
-            if (event.results[0].isFinal) this.integrate(transcript);
+            if (event.results[0].isFinal) {
+                this._els.main.classList.remove('recording');
+                this.integrate(transcript);
+            }
         }
+        this._els.main.classList.add('recording');
         recognition.start();
     }
 
@@ -177,7 +182,6 @@ class UI {
 ui = new UI();
 window.ui = ui;
 
-//ui.integrate('we wanted to have fun we went to the mall')
 ui.startTree();
 
 
