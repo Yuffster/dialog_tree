@@ -1,11 +1,12 @@
 <html>
 
 <head>
+  <title>Dialog Tree</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto:100|Source+Sans+Pro:200|Dosis:200" rel="stylesheet">
     <link rel="stylesheet" href="/assets/styles/main.css" />
 </head>
 
-<body class="loading">
+<body>
 
     {% block body %}{% endblock %}
 
@@ -37,11 +38,13 @@
         </div>
     </div>
     <div id="node-background">
+        <div id="scroll-bg" class="container"></div>
         <div id="corpus-container" class="background-nodelist container"></div>
-        <div id="secondary-container" class="container"></div>
+        <!-- Overflows are randomly appended with node values.
+             It looks cool. -->
         <div id="overflow-container" class="background-nodelist container"></div>
         <div id="overflow-container2" class="background-nodelist container"></div>
-         <div id="overflow-container3" class="background-nodelist container"></div>
+        <div id="overflow-container3" class="background-nodelist container"></div>
         <div id="spin-ui"><div id="spinner"><!--ᕕ( ᐛ ) ᕗ--></div></div>
     </div>
     </div>

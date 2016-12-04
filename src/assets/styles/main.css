@@ -239,7 +239,7 @@ body {
 #node-background .background-nodelist {
 }
 
-#node-background #secondary-container {
+#node-background #scroll-bg {
     left: 250px;
     transform: scale(.8);
     text-shadow: 0px 0px 3px rgba(101, 289, 227, .5);

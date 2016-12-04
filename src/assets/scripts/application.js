@@ -1,16 +1,12 @@
 function Application() {
 
-d = new DialogTree();
-
-d.attach('tab-markov');
-
-d.render();
+var ui = false;  // UI.
 
 delegate('#markov-ui div:last-child li', 'click', function(evt, target) {
     target.classList.add('selected');
     var words = target.dataset.words,
         id = target.id;
-    addNode(words, id);
+    ui.addNodeToTree(words, id);
 });
 
 delegate('#tab-select a', 'click', function(evt, target) {
@@ -30,102 +26,147 @@ delegate('#tab-select a', 'click', function(evt, target) {
     target.classList.add('active');
 });
 
-function addNode(word) {
-    if (!word) return;
-    speak(word);  // For Diego.
-    m.getNodesFollowing(word, (data) => {
-        if (!data) return;
-        var nodes = [];
-        for (let k in data) {
-            if (k.trim() == "") continue;
-            let node = {};
-            let esc = k.replace(/\W/g, '_');
-            node.words = k;
-            node.prob = data[k];
-            node.id = esc+Math.floor(Math.random()*1000)+new Date().getTime();
-            nodes.push(node);  
-        }
-        d.addWord(word, 345);
-        d.addNode({'nodes':nodes})
-        d.render();
-    });
-}
+class UI {
 
-var progress = document.getElementById('progress-meter');
-var ptext = document.getElementById('progress-text');
-var m = new Markov();
-var test = localStorage.getItem('corpus_FB')
-var lastWord = false;
+    constructor() {
+        this._markov = new Markov();
+        this._tree = this._makeTree();
+        this._els = {
+            'main': document.body,
+            'log': document.getElementById('scroll-bg'),
+            'samples': document.querySelectorAll('.background-nodelist'),
+            'progress': document.getElementById('progress-meter'),
+            'progress_text': document.getElementById('progress-text')
+        };
+    }
 
+    _makeTree() {
+        var tree = new DialogTree();
+        tree.attach('tab-markov');
+        tree.render();
+        return tree;
+    }
 
-let bg1 = document.getElementById('corpus-container');
-let bg2 = document.getElementById('secondary-container');
-let bg3 = document.getElementById('overflow-container');
-
-
-var last_p = -1;
-var last_value = "";
-
-if (1) {
-    var req = new XMLHttpRequest();
-    req.onreadystatechange = function (data) {
-        if (req.readyState != 4) return;
-        integrate(req.responseText);
-    };
-    req.open('GET', '/assets/corpora/chamber_secrets.txt')
-    req.send();
-}
-
-
-
-m.getRandomNode(addNode);
-
-function integrate(txt) {
-    m.integrate(txt, {
-        progress: (value, i, t) => {
-            bg2.append(value+" ");
-            if (Math.floor(Math.random()*12)==0) {
-                bg2.append(document.createElement("br"));
+    addNodeToTree(word) {
+        if (!word) return;
+        this.speak(word);  // For Diego.
+        this._markov.getNodesFollowing(word, (data) => {
+            if (!data) return;
+            var nodes = [];
+            for (let k in data) {
+                if (k.trim() == "") continue;
+                let node = {};
+                let esc = k.replace(/\W/g, '_');
+                node.words = k;
+                node.prob = data[k];
+                node.id = this.makeId();
+                nodes.push(node);
             }
-            bg2.scrollTop = bg2.scrollHeight;
-            var p = Math.floor(i/t*100);
-            if (lastWord) lastWord.innerHTML = value;
-            if (progress) {
-                progress.style.width = p+'%';
-                ptext.innerHTML = p+'%';
-            }
-            if (p == 100) {
+            this._tree.addWord(word, 345);
+            this._tree.addNode({'nodes':nodes})
+            this._tree.render();
+        });
+    }
+
+    integrate(txt) {
+        this._els.main.classList.add('loading');
+        var progress = this._els.progress;
+        var ptext = this._els.progress_text;
+        this._markov.integrate(txt, {
+            progress: (value, i, t) => {
+                var p = Math.floor(i/t*100);
+                if (progress) {
+                    progress.style.width = p+'%';
+                    ptext.innerHTML = p+'%';
+                }
+                this.addToLog(value);
+            }, done: () => {
                 document.body.classList.remove('loading');
             }
-            last_value = value;
+        });
+    }
+
+    addToLog(word) {
+        var log = this._els['log'];
+        if (!log) return;
+        var p = document.createElement("span");
+        p.innerHTML = word;
+        log.append(p);
+        // Append a break randomly.  It looks cool.
+        if (Math.floor(Math.random()*12)==0) {
+            log.append(document.createElement("p"));
         }
-    });
-}
+        // If we have enough backlog, just delete the oldest entry 
+        // before adding a new one.
+        if (log.scrollTop && log.scrollTop + 50 < log.scrollHeight) {
+            log.firstChild.remove()
+        }
+        log.scrollTop = log.scrollHeight;
+        this.addToSamples(word);
+    }
 
-function speak(txt) {
-    var msg = new SpeechSynthesisUtterance(txt);
-    var voices = window.speechSynthesis.getVoices();
-    msg.voiceURI = 'native';
-    msg.volume = 1; // 0 to 1
-    msg.rate = 1; // 0.1 to 10
-
-    speechSynthesis.speak(msg);
-}
-window.speak = speak;
-
-if (1) {
-    let last = false;
-    setInterval(() => {
-        if (last_value && last_value != last) {
-            last = last_value;
-        } else return;
-        var bgs = document.querySelectorAll('.background-nodelist');
+    addToSamples(word) {
+        var bgs = this._els['samples'];
         var bg = bgs[Math.floor(Math.random()*bgs.length)];
         let p = document.createElement('p');
         bg.append(p);
-        p.innerHTML = last;
+        p.innerHTML = word;
+        // If we have enough backlog, just delete the oldest entry 
+        // before adding a new one.  (Need to make this DRY.)
+        if (bg.scrollTop && bg.scrollTop + 50 < bg.scrollHeight) {
+            bg.firstChild.remove()
+        }
         bg.scrollTop = bg.scrollHeight;
-    }, 100);
+    }
+
+    makeId() {
+        return 'node'+Math.floor(Math.random()*1000)+new Date().getTime();
+    }
+
+    addCorpus(name) {
+        /* Load one of the pre-defined corpora. */
+        var req = new XMLHttpRequest();
+        req.onreadystatechange = (data)=>{
+            if (req.readyState != 4) return;
+            this.integrate(req.responseText);
+        };
+        req.open('GET', '/assets/corpora/'+name+'.txt')
+        req.send();
+    }
+
+    speak(txt) {
+        if (!SpeechSynthesisUtterance) return;
+        var msg = new SpeechSynthesisUtterance(txt);
+        var voices = window.speechSynthesis.getVoices();
+        msg.voiceURI = 'native';
+        msg.volume = 1; // 0 to 1
+        msg.rate = 1; // 0.1 to 10
+        speechSynthesis.speak(msg);
+    }
+
+    newTree(start_node) {
+        /**
+         * Create a new tree, add this node.
+         **/
+        this._tree = this._makeTree();
+        this.addNodeToTree(start_node);
+    }
+
+    startTree() {
+        this._markov.getRandomNode((n) => this.newTree(n));
+    }
+
+    clearCorpus() {
+        this._markov.clearCorpus();
+    }
+
 }
+
+ui = new UI();
+window.ui = ui;
+
+ui.integrate('we wanted to have fun we went to the mall we wanted to have fun')
+ui.startTree();
+
 
 };
