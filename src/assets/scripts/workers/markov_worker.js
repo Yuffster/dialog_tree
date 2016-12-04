@@ -259,10 +259,27 @@ class EventLoop {
 
 class DB {
 
-    _getDB(fun) {
+    _getDB(fun, tries=0) {
         var open = indexedDB.open(namespace, 1);
         open.onupgradeneeded = () => this._setSchema(open.result);
-        if (fun) open.onsuccess = () => fun(open.result);
+        // This operation just times out FOR NO REASON. ¯\_(ツ)_/¯
+        var still_waiting = true;
+        if (fun) open.onsuccess = () => {
+            still_waiting = false;
+            if (tries>0) console.log("DB fixed.");
+            fun(open.result);
+        }
+        setTimeout(()=>{
+            if (still_waiting) {
+                if (tries==0) {
+                    console.log("DB broken; switching to #"+tries);
+                } else {
+                    console.log("DB still broken, try try again.");
+                }
+                namespace += "_";
+                this._getDB(fun, tries++);
+            }
+        }, 1000);
     }
 
     _setSchema(db) {
