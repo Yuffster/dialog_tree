@@ -10,14 +10,17 @@ import shutil
 with open('templates/layout.html', 'r') as f:
     content = f.read()
 
-with open('VERSION', 'wr') as f:
-	version = f.read()
+with open('VERSION', 'r') as f:
+    version = f.read()
 
 template = Template(content)
 
 data = app.inject_assets()
-data['version'] = 1.2.7
+data['version'] = input("Version number (last was {}): ".format(version))
 data['environment'] = 'prod'
+
+with open('VERSION', 'w') as f:
+    f.write(data['version'])
 
 out = template.render(data)
 out = out.replace('  ', '')
@@ -27,9 +30,9 @@ out = out.replace('\n\n', '');
 path = "/Users/m/testzip/"
 
 try:
-	shutil.rmtree(path+'assets')
+    shutil.rmtree(path+'assets')
 except FileNotFoundError:
-	pass
+    pass
 
 shutil.copytree('assets', path+'assets')
 
