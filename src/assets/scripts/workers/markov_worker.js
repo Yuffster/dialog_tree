@@ -67,7 +67,7 @@ var API = {
         var d = new Deferred();
         db.get(key, (r) => {
             var res = (r && r.data) ? r.data : {};
-            if (r) d.callback(res);
+            d.callback(res);
         });
         return d;
     },
