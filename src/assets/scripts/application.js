@@ -79,10 +79,7 @@ class UI {
     integrate(txt) {
         this._els.main.classList.add('loading');
         var progress = this._progress.addThread({
-            progress: (v) => {
-                this.addToLog(v);
-                this.addToSamples(v);
-            }
+            progress: (v) => this.addToLog(v)
         });
         this._markov.integrate(txt, progress);
     }
@@ -148,7 +145,7 @@ class UI {
     newTree(start_node) {
         /**
          * Create a new tree, add this node.
-         **/
+         */
         this._tree = this._makeTree();
         this.addNodeToTree(start_node);
     }
