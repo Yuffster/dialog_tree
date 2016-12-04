@@ -36,7 +36,8 @@ class UI {
             'log': document.getElementById('scroll-bg'),
             'samples': document.querySelectorAll('.background-nodelist'),
             'progress': document.getElementById('progress-meter'),
-            'progress_text': document.getElementById('progress-text')
+            'progress_text': document.getElementById('progress-text'),
+            'transcript': document.getElementById("transcript-output")
         };
     }
 
@@ -160,12 +161,23 @@ class UI {
         this._markov.clearCorpus();
     }
 
+    integrateSpeech() {
+        var recognition = new webkitSpeechRecognition();
+        recognition.interimResults = true;
+        recognition.onresult = (event) => {
+            var transcript = event.results[0][0].transcript;
+            this._els.transcript.innerHTML = transcript;
+            if (event.results[0].isFinal) this.integrate(transcript);
+        }
+        recognition.start();
+    }
+
 }
 
 ui = new UI();
 window.ui = ui;
 
-ui.integrate('we wanted to have fun we went to the mall we wanted to have fun')
+//ui.integrate('we wanted to have fun we went to the mall')
 ui.startTree();
 
 

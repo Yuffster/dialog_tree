@@ -91,9 +91,10 @@ body {
     overflow: hidden;
 }
 
-#output {
+#output,#transcript-output {
     font-family: 'Roboto', sans-serif;
     text-shadow: 1px 1px #000;
+    text-transform: uppercase;
 }
 
 .node-list-container {
