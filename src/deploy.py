@@ -23,9 +23,6 @@ with open('VERSION', 'w') as f:
     f.write(data['version'])
 
 out = template.render(data)
-out = out.replace('  ', '')
-out = out.replace('\t', '');
-out = out.replace('\n\n', '');
 
 path = "/Users/m/testzip/"
 
