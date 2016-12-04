@@ -39,6 +39,13 @@ class UI {
             'progress_text': document.getElementById('progress-text'),
             'transcript': document.getElementById("transcript-output")
         };
+        this._loading_things = 0;
+        this._total_loading = 0;
+        this._total_loaded = 0;
+        this._progress = new ProgressUI(
+            this._els.progress,
+            this._els.progress_text
+        );
     }
 
     _makeTree() {
@@ -71,20 +78,8 @@ class UI {
 
     integrate(txt) {
         this._els.main.classList.add('loading');
-        var progress = this._els.progress;
-        var ptext = this._els.progress_text;
-        this._markov.integrate(txt, {
-            progress: (value, i, t) => {
-                var p = Math.floor(i/t*100);
-                if (progress) {
-                    progress.style.width = p+'%';
-                    ptext.innerHTML = p+'%';
-                }
-                this.addToLog(value);
-            }, done: () => {
-                document.body.classList.remove('loading');
-            }
-        });
+        var progress = this._progress.addThread();
+        this._markov.integrate(txt, progress);
     }
 
     addToLog(word) {
@@ -175,6 +170,62 @@ class UI {
         }
         this._els.main.classList.add('recording');
         recognition.start();
+    }
+
+}
+
+class ProgressUI {
+
+    constructor(meter, ptext) {
+        this._els = {};
+        this._els.meter = meter;
+        this._els.text = ptext;
+        this._els.main = document.body;
+        this._waiting = 0;
+        this._total = 0;
+    }
+
+    addThread(funs) {
+        this._els.main.classList.add('loading');
+        var remaining;
+        funs = funs || {};
+        return {
+            start: (total) => {
+                remaining = total;
+                this._waiting += total;
+                this._total += total;
+                this.update();
+                if (funs.start) funs.start(total);
+            },
+            progress: (...args) => {
+                remaining--;
+                this._waiting--;
+                this.update();
+                if (funs.progress) funs.progress.apply(null, args);
+            },
+            done: (...args) => {
+                this._waiting -= remaining;
+                this.update();
+                if (funs.done) funs.done.apply(null, args);
+            }
+        };
+    }
+
+    update() {
+        var meter = this._els.meter;
+        var text = this._els.text;
+        var p;
+        if (this._waiting <= 0) p = 100;
+        else {
+            p = Math.floor((this._total-this._waiting)/this._total*100);
+        }
+        meter.style.width = p+'%';
+        text.innerHTML = p+'%';
+        if (p==100){
+            document.body.classList.remove('loading');
+        } else {
+            document.body.classList.add('loading');
+        }
     }
 
 }
