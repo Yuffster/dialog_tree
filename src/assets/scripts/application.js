@@ -152,9 +152,8 @@ delegate('#tab-select a', 'click', function(evt, target) {
     target.classList.add('active');
 });
 
-
-
 function addNode(word) {
+    speak(word);  // For Diego.
     m.getNodesFollowing(word, (data) => {
         if (!data) return;
         var nodes = [];
@@ -184,28 +183,58 @@ let bg1 = document.getElementById('corpus-container');
 let bg2 = document.getElementById('secondary-container');
 let bg3 = document.getElementById('overflow-container');
 
+
 var last_p = -1;
 var last_value = "";
-m.integrate(test, {
-    progress: (value, i, t) => {
-        bg2.append(value+" ");
-        if (Math.floor(Math.random()*12)==0) {
-            bg2.append(document.createElement("br"));
-        }
-        bg2.scrollTop = bg2.scrollHeight;
-        var p = Math.floor(i/t*100);
-        if (lastWord) lastWord.innerHTML = value;
-        if (progress) {
-            progress.style.width = p+'%';
-            ptext.innerHTML = p+'%';
-        }
-        if (p == 100) {
-            document.body.classList.remove('loading');
-        }
-        last_value = value;
-    }
-});
 
+if (0) {
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = function (data) {
+        if (req.readyState != 4) return;
+        integrate(req.responseText);
+    };
+    req.open('GET', '/assets/corpora/chamber_secrets.txt')
+    req.send();
+}
+
+
+
+m.getRandomNode(addNode);
+
+integrate('have fun we wanted to have fun we went to the mall')
+
+function integrate(txt) {
+    m.integrate(txt, {
+        progress: (value, i, t) => {
+            bg2.append(value+" ");
+            if (Math.floor(Math.random()*12)==0) {
+                bg2.append(document.createElement("br"));
+            }
+            bg2.scrollTop = bg2.scrollHeight;
+            var p = Math.floor(i/t*100);
+            if (lastWord) lastWord.innerHTML = value;
+            if (progress) {
+                progress.style.width = p+'%';
+                ptext.innerHTML = p+'%';
+            }
+            if (p == 100) {
+                document.body.classList.remove('loading');
+            }
+            last_value = value;
+        }
+    });
+}
+
+function speak(txt) {
+    var msg = new SpeechSynthesisUtterance(txt);
+    var voices = window.speechSynthesis.getVoices();
+    msg.voiceURI = 'native';
+    msg.volume = 1; // 0 to 1
+    msg.rate = 1; // 0.1 to 10
+
+    speechSynthesis.speak(msg);
+}
+window.speak = speak;
 
 if (1) {
     let last = false;
@@ -221,8 +250,5 @@ if (1) {
         bg.scrollTop = bg.scrollHeight;
     }, 100);
 }
-
-
-m.getRandomNode(addNode);
 
 };
