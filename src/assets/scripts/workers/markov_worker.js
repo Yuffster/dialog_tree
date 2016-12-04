@@ -188,7 +188,7 @@ class EventLoop {
             result.onerror = (r) => loop.get(id).emit('error', r);
         // If we didn't get a generator, just send the result.
         } else {
-            loop.get(id).emit('start', total);
+            loop.get(id).emit('start', 0);
             loop.get(id).emit('done', result);
         }
     }
