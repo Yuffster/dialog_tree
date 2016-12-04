@@ -133,6 +133,7 @@ function chunk(arr, size=1) {
     while(arr.length>=size) {
         out.push(arr.splice(0, size).join(" "));
     }
+    out.push(arr);
     return out;
 }
 

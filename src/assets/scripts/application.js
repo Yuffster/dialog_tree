@@ -37,7 +37,8 @@ class UI {
             'samples': document.querySelectorAll('.background-nodelist'),
             'progress': document.getElementById('progress-meter'),
             'progress_text': document.getElementById('progress-text'),
-            'transcript': document.getElementById("transcript-output")
+            'transcript': document.getElementById("transcript-output"),
+            'output': document.getElementById('output')
         };
         this._loading_things = 0;
         this._total_loading = 0;
@@ -50,9 +51,17 @@ class UI {
 
     _makeTree() {
         var tree = new DialogTree();
-        tree.attach('tab-markov');
+        tree.attach('tree-ui');
         tree.render();
         return tree;
+    }
+
+    smush(txt) {
+        console.log(txt)
+        if (!txt) return txt;
+        return txt.replace(/(\s+)[.?,!]/g, function(w) { 
+            return w.trim();
+        });
     }
 
     addNodeToTree(word) {
@@ -64,13 +73,13 @@ class UI {
             for (let k in data) {
                 if (k.trim() == "") continue;
                 let node = {};
-                let esc = k.replace(/\W/g, '_');
                 node.words = k;
                 node.prob = data[k];
                 node.id = this.makeId();
                 nodes.push(node);
             }
-            this._tree.addWord(word, 345);
+            this._els.output.innerHTML += ' '+word;
+            this._els.output.innerHTML = this.smush(this._els.output.innerHTML);
             this._tree.addNode({'nodes':nodes})
             this._tree.render();
         });
