@@ -140,8 +140,8 @@ class UI {
         var msg = new SpeechSynthesisUtterance(txt);
         var voices = window.speechSynthesis.getVoices();
         msg.voiceURI = 'native';
-        msg.volume = 1; // 0 to 1
-        msg.rate = 1; // 0.1 to 10
+        msg.volume = 1;
+        msg.rate = 1;
         speechSynthesis.speak(msg);
     }
 
