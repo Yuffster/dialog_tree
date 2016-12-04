@@ -21,12 +21,7 @@ class Markov {
     integrate(txt, funs) {
         funs = funs || {};
         var req = this._worker.request('integrate', txt, this._size);
-        req.on('progress', (v, i, t) => {
-            if (funs.progress) funs.progress(v, i, t);
-        });
-        req.on('done', function(v) {
-            if (funs.done) funs.done(v);
-        });
+        for (let evt in funs) req.on(evt, funs[evt]);
         req.start();
     }
 
