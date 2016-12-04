@@ -2,12 +2,49 @@
 
 <head>
   <link href="https://fonts.googleapis.com/css?family=Roboto:100|Source+Sans+Pro:200|Dosis:200" rel="stylesheet">
-    <link rel="stylesheet" href="/styles/main.css" />
+    <link rel="stylesheet" href="/assets/styles/main.css" />
 </head>
 
 <body class="loading">
 
     {% block body %}{% endblock %}
+
+    <div id="header">
+        <h1><a class="litany" href="#"><i>litany</i><span>.io</span></a> Dialog Tree</h1>
+        <div id="tab-select">
+            <a href="#intro">Integrate</a>
+            <a href="#markov" class="active">Generate</a>
+            <a href="#share">Share</a>
+        </div>
+    </div>
+    <div id="tabs">
+        <div id="tab-intro" class="tab">
+            <p>Hello, isn't this neat?</p>
+            <fb:login-button
+              scope="public_profile,email,user_posts"
+              onlogin="Facebook();">
+            </fb:login-button>
+        </div>
+        <div id="tab-markov" class="tab active">Loading...</div>
+    </div>
+    <div id="ui-stuff">
+    <div class="progress">
+        <div id="progress-meter"></div>
+        <div id="progress-text"></div>
+        <div id="version">
+          <span class="v">v{{ version }}</span>
+          <span class="env">(<em>{{ environment }}</em>)</span>
+        </div>
+    </div>
+    <div id="node-background">
+        <div id="corpus-container" class="background-nodelist container"></div>
+        <div id="secondary-container" class="container"></div>
+        <div id="overflow-container" class="background-nodelist container"></div>
+        <div id="overflow-container2" class="background-nodelist container"></div>
+         <div id="overflow-container3" class="background-nodelist container"></div>
+        <div id="spin-ui"><div id="spinner"><!--ᕕ( ᐛ ) ᕗ--></div></div>
+    </div>
+    </div>
 
     {% block views %}
         {% for name, content in views %}
@@ -19,7 +56,7 @@
 
     {% block scripts %}
         {% for src in scripts %}
-            <script type="text/javascript" src="/{{ src }}"></script>
+            <script type="text/javascript" src="/assets/{{ src }}"></script>
         {% endfor %}
         <script type="text/javascript">
             Application();

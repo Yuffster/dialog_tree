@@ -8,13 +8,9 @@ app.jinja_env.autoescape = False
 
 """ [[[ Asset Stuff (CSS, JS, client templates) ]]] """
 
-@app.route('/scripts/<path:filename>')
+@app.route('/assets/<path:filename>')
 def script_loader(filename):
-    return flask.send_from_directory('assets/scripts', filename)
-
-@app.route('/styles/<path:filename>')
-def style_loader(filename):
-    return flask.send_from_directory('assets/styles', filename)
+    return flask.send_from_directory('assets/', filename)
 
 def get_assets(kind, ext, content=False):
     assets = {}
@@ -27,6 +23,10 @@ def get_assets(kind, ext, content=False):
         else:
             assets[name] = ''
     return assets
+
+@app.context_processor
+def inject_version():
+    return {'environment':'dev', 'version':'0.0.0.0'}
 
 @app.context_processor
 def inject_assets():
