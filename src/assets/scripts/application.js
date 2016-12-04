@@ -57,7 +57,6 @@ class UI {
     }
 
     smush(txt) {
-        console.log(txt)
         if (!txt) return txt;
         return txt.replace(/(\s+)[.?,!]/g, function(w) { 
             return w.trim();
@@ -67,8 +66,9 @@ class UI {
     addNodeToTree(word) {
         if (!word) return;
         this.speak(word);  // For Diego.
+        this._els.output.innerHTML += ' '+word;
+        this._els.output.innerHTML = this.smush(this._els.output.innerHTML);
         this._markov.getNodesFollowing(word, (data) => {
-            if (!data) return;
             var nodes = [];
             for (let k in data) {
                 if (k.trim() == "") continue;
@@ -78,8 +78,6 @@ class UI {
                 node.id = this.makeId();
                 nodes.push(node);
             }
-            this._els.output.innerHTML += ' '+word;
-            this._els.output.innerHTML = this.smush(this._els.output.innerHTML);
             this._tree.addNode({'nodes':nodes})
             this._tree.render();
         });
