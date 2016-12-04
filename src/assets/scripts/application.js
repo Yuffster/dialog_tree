@@ -78,7 +78,12 @@ class UI {
 
     integrate(txt) {
         this._els.main.classList.add('loading');
-        var progress = this._progress.addThread();
+        var progress = this._progress.addThread({
+            progress: (v) => {
+                this.addToLog(v);
+                this.addToSamples(v);
+            }
+        });
         this._markov.integrate(txt, progress);
     }
 
