@@ -3,8 +3,13 @@ class Markov {
     constructor(size=2) {
         this._nodes = false;
         this._size = size;
-        this._storage_namespace = "_mk"+size+"_";
         this._worker = new WorkerAPI('markov_worker');
+    }
+
+    clearCorpus(fun) {
+        var req = this._worker.request('clearCorpus');
+        if (fun) req.on('done', fun);
+        req.start();
     }
 
     getRandomNode(fun) {
