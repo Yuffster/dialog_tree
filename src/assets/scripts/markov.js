@@ -1,6 +1,6 @@
 class Markov {
 
-    constructor(size=3) {
+    constructor(size=2) {
         this._nodes = false;
         this._size = size;
         this._storage_namespace = "_mk"+size+"_";
