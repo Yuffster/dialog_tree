@@ -99,7 +99,7 @@ var API = {
 
 function integrate(text, size=1) {
     db = db || new DB();
-    var chunks = chunk(text.split(/[\s+]/), size);
+    var chunks = chunk(text.match(/([A-Za-z']+|[,.?!])/g), size);
     var gen = (function* g() {
         var prev = false;
         var prev_word = false;
