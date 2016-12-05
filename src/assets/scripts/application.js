@@ -162,6 +162,7 @@ class UI {
         /**
          * Create a new tree, add this node.
          */
+        this._els.output.innerHTML = "";
         this._tree = this._makeTree();
         this.addNodeToTree(start_node);
     }
