@@ -422,11 +422,12 @@ body.loading #spin-ui {
 
 ul.actions {
     list-style: none;
-    margin: 0;
+    padding: 0;
     width: 300px;
 }
 
 ul.actions li {
+    margin: 0;
     cursor: pointer;
 }
 
