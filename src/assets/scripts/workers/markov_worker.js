@@ -260,39 +260,60 @@ class EventLoop {
 
 class DB {
 
-    _getDB(fun, db_name=false, tries=0) {
-        db_name = db_name || namespace;
-        var open = indexedDB.open(db_name, 1);
+    constructor() {
+        this._dbq = [];
+        this._db = false;
+        this._openDB((db) => {
+            this._db = db;
+            while (this._dbq.length > 0) {
+                console.log('executing queue');
+                this._dbq.shift().apply(this, [this._db]);
+            }
+            db.onclose = () => {
+                console.log("DB:", namespace, "closed");
+                this._db = false;
+            }
+        });
+    }
+
+    _getDB(fun) {
+        if (!this._db) {
+            this._dbq.push(fun);
+        } else {
+            fun(this._db);
+        }
+    }
+
+    _openDB(fun, tries=0) {
+        if (this._db) return;
+        console.log("DB: opening", namespace);
+        var open = indexedDB.open(namespace, 1);
+        var max_tries = 5;
         open.onupgradeneeded = () => this._setSchema(open.result);
         // This operation just times out FOR NO REASON. ¯\_(ツ)_/¯
         var still_waiting = true;
         if (fun) open.onsuccess = () => {
             still_waiting = false;
-            if (tries>0) console.log("DB fixed.");
-            namespace = db_name;
+            console.log("DB open.");
             fun(open.result);
         }
-        open.onblocked = function() {
-            console.log("DB blocked.");
-        }
-        var maxTries = 10;
-        setTimeout(()=>{
+        open.onerror = function(e) { console.error(e); }
+        open.onblocked = function(e) { console.log(e); }
+        setTimeout(()=>{ 
+            if (tries >= max_tries) {
+                console.log("DB: Broken forever. ¯\\_(ツ)_/¯");
+                return;
+            }
             if (still_waiting) {
-                var new_name = db_name+"_";
-                if (tries >= maxTries) {
-                    console.log("DB is broken forever. ¯\\_(ツ)_/¯");
-                }
-                if (tries==0) {
-                    console.log("DB broken; switching to "+new_name);
-                } else {
-                    console.log("DB still broken, try try again.");
-                }
-                this._getDB(fun, new_name+'_', ++tries);
+                namespace += "_";
+                console.log("DB broken; switching to "+namespace);
+                this._getDB(fun, ++tries);
             }
         }, 1000);
     }
 
     _setSchema(db) {
+        console.log("DB:", namespace, "schema set.");
         var store = db.createObjectStore(
             namespace, {
                 keyPath: "id",
@@ -327,16 +348,12 @@ class DB {
                 req.onsuccess = () => {
                     fun.apply(d, [true]);
                 };
-                tx.oncomplete = function() {
-                    db.close();
-                };
             });
         });
         if (d) return d;
     }
 
     get(key, fun, indexed=false) {
-        if (!key) fun(false);
         var d = null;
         if (!fun) {
             d = new Deferred();
@@ -363,7 +380,6 @@ class DB {
                     fun.apply(d, []);
                 }
             }
-            tx.oncomplete = () => db.close();
         });
         if (d) return d;
     }
@@ -392,7 +408,6 @@ class DB {
             var store = tx.objectStore(namespace);
             var req = store.count();
             req.onsuccess = () => fun.apply(d, [req.result]);
-            tx.oncomplete = () => db.close();
         });
         if (d) return d;
     }
