@@ -24,6 +24,10 @@ class Feed {
 		this.pending();
 		this.api(page || 'me?fields=posts', (res)=>{
 			this.done();
+			if (!res || (!res.data && !res.posts)) {
+				console.error("Facebook approval pending.");
+				return;
+			}
 			var data = (page) ? res.data : res.posts.data;
 			for (let post of data) {
 				this.add_to_corpus(post.message);
