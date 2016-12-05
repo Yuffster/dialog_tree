@@ -14,13 +14,15 @@
         <h1><a class="litany" href="#"><i>litany</i><span>.io</span></a> Dialog Tree</h1>
         <div id="tab-select">
             <a href="#intro" class="active">Integrate</a>
-            <a href="#markov">Generate</a>
+            <a href="#markov" data-action="startTree">Generate</a>
             <a href="#share">Share</a>
         </div>
     </div>
     <div id="tabs">
         <div id="tab-intro" class="tab active">
-            <div id="transcript-output"></div>
+            <div id="transcript-output">&nbsp;</div>
+            <p>Please add data to your corpus before trying to generate new text.</p>
+            <p>Corpora data is stored to your browser's local storage.</p>
             <ul class="actions">
              <li data-action="addCorpus" data-arg="chamber_secrets">
                Integrate Harry Potter
