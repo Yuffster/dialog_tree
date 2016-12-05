@@ -269,6 +269,7 @@ class DB {
         if (fun) open.onsuccess = () => {
             still_waiting = false;
             if (tries>0) console.log("DB fixed.");
+            namespace = db_name;
             fun(open.result);
         }
         open.onblocked = function() {
