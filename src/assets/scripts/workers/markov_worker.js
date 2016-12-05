@@ -335,6 +335,7 @@ class DB {
     }
 
     get(key, fun, indexed=false) {
+        if (!key) fun(false);
         var d = null;
         if (!fun) {
             d = new Deferred();
