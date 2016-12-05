@@ -6,6 +6,7 @@ import app
 from jinja2 import Template
 from s3 import deploy_to_bucket
 import shutil
+import os
 
 with open('templates/layout.html', 'r') as f:
     content = f.read()
@@ -24,12 +25,10 @@ with open('VERSION', 'w') as f:
 
 out = template.render(data)
 
-path = "/Users/m/testzip/"
+path = "/Users/m/litany_builds/v"+data['version']+'/'
 
-try:
-    shutil.rmtree(path+'assets')
-except FileNotFoundError:
-    pass
+if not os.path.isdir(path):
+    os.makedirs (path)
 
 shutil.copytree('assets', path+'assets')
 
