@@ -99,11 +99,12 @@ var API = {
 
 function integrate(text, size=1) {
     db = db || new DB();
-    var chunks = chunk(text.match(/([A-Za-z0-9']+|[,.?!])/g), size);
+    var nodes = text.match(/([A-Za-z0-9']+|[,.?!])/g)
     var gen = (function* g() {
         var prev = false;
         var prev_word = false;
-        for (let word of chunks) {
+        while(nodes.length>=size) {
+            word = nodes.splice(0, size).join(" ");
             var d = new Deferred();
             // Add to total of times this word has followed the previous.
             if (prev !== false) {
@@ -124,18 +125,8 @@ function integrate(text, size=1) {
             yield d;
         }
     }());
-    return [gen, chunks.length];
+    return [gen, nodes.length/size];
 };
-
-
-function chunk(arr, size=1) {
-    var out = [];    
-    while(arr.length>=size) {
-        out.push(arr.splice(0, size).join(" "));
-    }
-    out.push(arr);
-    return out;
-}
 
 class Deferred {
     callback(data) {
@@ -299,7 +290,7 @@ class DB {
         }
         open.onerror = function(e) { console.error(e); }
         open.onblocked = function(e) { console.log(e); }
-        setTimeout(()=>{ 
+        setTimeout(()=>{
             if (tries >= max_tries) {
                 console.log("DB: Broken forever. ¯\\_(ツ)_/¯");
                 return;
