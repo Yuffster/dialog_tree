@@ -199,7 +199,6 @@ class UI {
     }
 
     updateNodeCount(interval) {
-        console.log(interval);
         this._markov.getCount((n) => {
             this._els.node_count.innerHTML = n;
         });
