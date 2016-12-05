@@ -45,7 +45,8 @@ class UI {
             'progress': document.getElementById('progress-meter'),
             'progress_text': document.getElementById('progress-text'),
             'transcript': document.getElementById("transcript-output"),
-            'output': document.getElementById('output')
+            'output': document.getElementById('output'),
+            'node_count': document.getElementById('corpus-size')
         };
         this._loading_things = 0;
         this._total_loading = 0;
@@ -54,6 +55,7 @@ class UI {
             this._els.progress,
             this._els.progress_text
         );
+        this.updateNodeCount(1000);
     }
 
     _makeTree() {
@@ -194,6 +196,16 @@ class UI {
         FB.login(() => {
             new Feed().integrate();
         });
+    }
+
+    updateNodeCount(interval) {
+        console.log(interval);
+        this._markov.getCount((n) => {
+            this._els.node_count.innerHTML = n;
+        });
+        if (interval > 0) setInterval(() => {
+            this.updateNodeCount();
+        }, interval);
     }
 
 }
