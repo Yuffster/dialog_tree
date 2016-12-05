@@ -6,6 +6,12 @@ class Markov {
         this._worker = new WorkerAPI('markov_worker');
     }
 
+    getCount(fun) {
+        var req = this._worker.request('count');
+        if (fun) req.on('done', fun);
+        req.start();
+    }
+
     clearCorpus(fun) {
         var req = this._worker.request('clearCorpus');
         if (fun) req.on('done', fun);
