@@ -1,23 +1,10 @@
-function Facebook() {
-
-	FB.getLoginStatus(function(r) {
-		if (r.status == 'connected') {
-			window.feed = new Feed(r.authResponse.userID);
-		} else {
-			console.log("not logged in");
-		}
-	});
-
-};
-
 class Feed {
 
 	constructor(id) {
 		this.id = id;
 		this._pending = 0;
 		this._corpus = "";
-		this.getFeed();
-		this._max_pages = 1;
+		this._max_pages = 4;
 		this._markov = new Markov();
 		this._pages = 0;
 	}
@@ -29,7 +16,7 @@ class Feed {
 		});
 	}
 
-	getFeed(page) {
+	integrate(page) {
 		if (page) {
 			this._pages++;
 			if (this._max_pages < this._pages) return;
@@ -76,7 +63,7 @@ class Feed {
 	done() {
 		this._pending--;
 		if (this._pending == 0) {
-			//this.saveLocally();
+			this.saveLocally();
 		}
 	}
 
@@ -84,7 +71,7 @@ class Feed {
 		if (!str) return;
 		// Strip URLs.
 		str = str.replace(/https?:\/\/([^ ]*)/g, '');
-		this._markov.integrate(str);
+		ui.integrate(str);
 	}
 
 	get pages() {
@@ -100,7 +87,7 @@ class Feed {
 	}
 
 	saveLocally() {
-		//localStorage.setItem('corpus_FB', this._corpus);
+		localStorage.setItem('corpus_FB', this._corpus);
 	}
 
 }

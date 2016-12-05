@@ -13,20 +13,24 @@
     <div id="header">
         <h1><a class="litany" href="#"><i>litany</i><span>.io</span></a> Dialog Tree</h1>
         <div id="tab-select">
-            <a href="#intro">Integrate</a>
-            <a href="#markov" class="active">Generate</a>
+            <a href="#intro" class="active">Integrate</a>
+            <a href="#markov">Generate</a>
             <a href="#share">Share</a>
         </div>
     </div>
     <div id="tabs">
-        <div id="tab-intro" class="tab">
-            <div id="transcript-output">Transcript</div>
-            <fb:login-button
-              scope="public_profile,email,user_posts"
-              onlogin="Facebook();">
-            </fb:login-button>
+        <div id="tab-intro" class="tab active">
+            <div id="transcript-output"></div>
+            <ul class="actions">
+             <li data-action="addCorpus" data-arg="chamber_secrets">
+               Integrate Harry Potter
+             </li>
+              <li data-action="integrateSpeech">Integrate Speech</li>
+              <li data-action="integrateFacebook">Scrape your Facebook</li>
+              <li data-action="clearCorpus">Clear Corpus</li>
+            </ul>
         </div>
-        <div id="tab-markov" class="tab active">
+        <div id="tab-markov" class="tab">
           <div id="output"></div>
           <div id="tree-ui"></div>
         </div>
@@ -48,7 +52,7 @@
         <div id="overflow-container" class="background-nodelist container"></div>
         <div id="overflow-container2" class="background-nodelist container"></div>
         <div id="overflow-container3" class="background-nodelist container"></div>
-        <div id="spin-ui"><div id="spinner"><!--ᕕ( ᐛ ) ᕗ--></div></div>
+        <div id="spin-ui"><div id="spinner"><!--ᕕ( ᐛ ) ᕗ-->.</div></div>
         <div id="record-ui"><div class="dot"></div></div>
     </div>
     </div>

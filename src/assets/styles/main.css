@@ -228,7 +228,7 @@ body {
 
 
 body.loading #node-background {
-    animation: breathe 12s linear infinite;
+    /*/animation: breathe 5s linear infinite;*/
 }
 
 @keyframes breathe {
@@ -418,4 +418,18 @@ body.loading #spin-ui {
     100% {
         opacity: .1;
     };
+}
+
+ul.actions {
+    list-style: none;
+    margin: 0;
+    width: 300px;
+}
+
+ul.actions li {
+    cursor: pointer;
+}
+
+ul.actions li:hover {
+    color: #fff;
 }

@@ -18,12 +18,19 @@ delegate('#tab-select a', 'click', function(evt, target) {
         // Set the link to active.
         let as = par.querySelectorAll('a.active');
         for (let n of as) n.classList.remove('active');
-        // Set the active tab.
-        let active = tabs.querySelectorAll('.tab.active');
-        for (let n of active) n.classList.remove('active');
-        t.classList.add('active');
     }
+    // Set the active tab.
+    let active = tabs.querySelectorAll('.tab.active');
+    for (let n of active) n.classList.remove('active');
+    t.classList.add('active'); 
     target.classList.add('active');
+});
+
+delegate('*[data-action]', 'click', function(evt, target) {
+    var handler = ui[target.dataset.action];
+    if (!handler) return;
+    if (target.dataset.arg) handler.apply(ui, [target.dataset.arg]);
+    else handler.apply(ui, [evt, target]);
 });
 
 class UI {
@@ -175,10 +182,18 @@ class UI {
             if (event.results[0].isFinal) {
                 this._els.main.classList.remove('recording');
                 this.integrate(transcript);
+                this._els.transcript.innerHTML = 'Integrating: '+transcript;
             }
         }
         this._els.main.classList.add('recording');
+        this._els.transcript.innerHTML = 'Listening for speech...';
         recognition.start();
+    }
+
+    integrateFacebook() {
+        FB.login(() => {
+            new Feed().integrate();
+        });
     }
 
 }
