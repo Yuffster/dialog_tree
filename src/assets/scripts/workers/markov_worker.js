@@ -97,35 +97,34 @@ var API = {
     }
 }
 
-function integrate(text, size=1) {
+function integrate(text, size=1, emitter) {
     db = db || new DB();
-    var nodes = text.match(/([A-Za-z0-9']+|[,.?!])/g)
-    var gen = (function* g() {
-        var prev = false;
-        var prev_word = false;
-        while(nodes.length>=size) {
-            word = nodes.splice(0, size).join(" ");
-            var d = new Deferred();
-            // Add to total of times this word has followed the previous.
-            if (prev !== false) {
-                prev[word] = prev[word] || 0;
-                prev[word]++;
-                db.set(prev_word, prev);
-            }
-            prev_word = word;
-            var d = new Deferred();
-            db.get(prev_word, (r) => {
-                prev = (r) ? r.data : {};
-                if (!r) {
-                    db.set(prev_word, {}, ()=> d.callback(prev_word));
-                } else {
-                    d.callback(r.node);
-                }
-            });
-            yield d;
+    var nodes = text.match(/([A-Za-z0-9']+|[,.?!])/g);
+    var prev = false;
+    var prev_word = false;
+    var i = 0;
+    (function gen() {
+        var word = nodes.splice(0, size).join(" ");
+        // Add to total of times this word has followed the previous.
+        if (prev !== false) {
+            prev[word] = prev[word] || 0;
+            prev[word]++;
+            db.set(prev_word, prev);
         }
+        prev_word = word;
+        db.get(prev_word, (r) => {
+            prev = (r) ? r.data : {};
+            if (!r) {
+                db.set(prev_word, {}, ()=> {
+                    emitter.emit('progress', word, ++i)
+                });
+            } else {
+                emitter.emit('progress', r.node, ++i);
+            }
+            if(nodes.length>0) { gen(); }
+        });
     }());
-    return [gen, nodes.length/size];
+    return [false, nodes.length/size];
 };
 
 class Deferred {
@@ -137,11 +136,15 @@ class Deferred {
         if (this._result) fun(result);
         else this._oncomplete = fun;
     }
+    destroy() {
+        this._oncomplete = false;
+        this._result = false;
+    }
 }
 
 class EventLoop {
 
-    constructor(interval=10) {
+    constructor(interval=100) {
         this._generators = new Map();
         this._counts = new Map();
         this._active = false;
@@ -160,6 +163,8 @@ class EventLoop {
             console.error(prefix, "Invalid command:", cmd);
             return;
         }
+        var emitter = loop.get(id);
+        args.push(emitter);
         // Run the command.
         var result = API[cmd].apply(null, args);
         // If we get a generator, add that to our generators so we can
@@ -170,18 +175,23 @@ class EventLoop {
         if (Array.isArray(result) && result[0] && result[0].next) {
             let [gen, total] = result;
             let counter = {current:0, total:total};
-            loop.get(id).emit('start', total);
+            emitter.emit('start', total);
             this._generators.set(id, gen);
             this._counts.set(id, counter);
             this._run_loop();
+        // Or we just got false and a total, meaning the events will be
+        // emitted by the handler asynchronously and no loop is necessary.
+        } else if (Array.isArray(result) 
+            && result[0] === false && result[1]>0) {
+            emitter.emit('start', result[1]);
         // Or we're waiting on a callback...
         } else if (result instanceof Deferred) {
-            result.oncomplete = (r) => loop.get(id).emit('done', r);
-            result.onerror = (r) => loop.get(id).emit('error', r);
+            result.oncomplete = (r) => emitter.emit('done', r);
+            result.onerror = (r) => emitter.emit('error', r);
         // If we didn't get a generator, just send the result.
         } else {
-            loop.get(id).emit('start', 0);
-            loop.get(id).emit('done', result);
+            emitter.emit('start', 0);
+            emitter.emit('done', result);
         }
     }
 
@@ -219,6 +229,7 @@ class EventLoop {
                 entry.emit('progress', value, c.current, c.total);
                 if (done == true) {
                     entry.emit('done', value);
+                    if (this._generators[id]) this._generators[id].destroy();
                     this._generators.delete(id);
                     this._counts.delete(id);
                 } else c.current++;
@@ -322,6 +333,9 @@ class DB {
     _drop() {
         console.log("Dropping DB:", namespace);
         indexedDB.deleteDatabase(namespace);
+        this._db.close();
+        this._db = false;
+        this._openDB();
     }
 
     set(key, val, fun) {
