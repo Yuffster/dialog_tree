@@ -225,7 +225,8 @@ class ProgressUI {
         this._els.main.classList.add('loading');
         var remaining;
         funs = funs || {};
-        var p = 100;  // Show every 100 nodes.
+        var last_update = new Date().getTime();
+        var update_rate = 1000/4;  // 4fps update
         return {
             start: (total) => {
                 remaining = total;
@@ -238,9 +239,9 @@ class ProgressUI {
                 remaining--;
                 this._waiting--;
                 this.update();
-                p--;
-                if (p <= 0 && funs.progress) {
-                    p = 100;
+                var t = new Date().getTime();
+                if (t > last_update + update_rate) {
+                    last_update = t;
                     funs.progress.apply(null, [v,i,t]);
                 }
             },
