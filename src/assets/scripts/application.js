@@ -225,6 +225,7 @@ class ProgressUI {
         this._els.main.classList.add('loading');
         var remaining;
         funs = funs || {};
+        var p = 100;  // Show every 100 nodes.
         return {
             start: (total) => {
                 remaining = total;
@@ -233,11 +234,15 @@ class ProgressUI {
                 this.update();
                 if (funs.start) funs.start(total);
             },
-            progress: (...args) => {
+            progress: (v, i, t) => {
                 remaining--;
                 this._waiting--;
                 this.update();
-                if (funs.progress) funs.progress.apply(null, args);
+                p--;
+                if (p <= 0 && funs.progress) {
+                    p = 100;
+                    funs.progress.apply(null, [v,i,t]);
+                }
             },
             done: (...args) => {
                 this._waiting -= remaining;
