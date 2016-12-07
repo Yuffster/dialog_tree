@@ -117,12 +117,13 @@ function integrate(text, size=1, emitter) {
             prev = (r) ? r.data : {};
             if (!r) {
                 db.set(prev_word, {}, ()=> {
-                    emitter.emit('progress', word, t-nodes.length, t)
+                    emitter.emit('progress', word, t-nodes.length, t);
+                    if(nodes.length>0) { gen(); }
                 });
             } else {
                 emitter.emit('progress', r.node, t-nodes.length, t);
+                if(nodes.length>0) { gen(); }
             }
-            if(nodes.length>0) { gen(); }
         });
     }());
     return [false, nodes.length/size];
