@@ -100,6 +100,7 @@ var API = {
 function integrate(text, size=1, emitter) {
     db = db || new DB();
     var nodes = text.match(/([A-Za-z0-9']+|[,.?!])/g);
+    var t = nodes.length;
     var prev = false;
     var prev_word = false;
     var i = 0;
@@ -116,10 +117,10 @@ function integrate(text, size=1, emitter) {
             prev = (r) ? r.data : {};
             if (!r) {
                 db.set(prev_word, {}, ()=> {
-                    emitter.emit('progress', word, ++i)
+                    emitter.emit('progress', word, t-nodes.length, t)
                 });
             } else {
-                emitter.emit('progress', r.node, ++i);
+                emitter.emit('progress', r.node, t-nodes.length, t);
             }
             if(nodes.length>0) { gen(); }
         });
@@ -265,10 +266,12 @@ class DB {
     constructor() {
         this._dbq = [];
         this._db = false;
+        this._open_gets = 0;
+        this._max_gets = 100;
+        this._getq = [];
         this._openDB((db) => {
             this._db = db;
             while (this._dbq.length > 0) {
-                console.log('executing queue');
                 this._dbq.shift().apply(this, [this._db]);
             }
             db.onclose = () => {
@@ -283,6 +286,12 @@ class DB {
             this._dbq.push(fun);
         } else {
             fun(this._db);
+        }
+    }
+
+    _flushGetQueue() {
+        while (this._getq.length > 0 && this._open_gets < this._max_gets) {
+            this.get.apply(this, this._getq.shift());
         }
     }
 
@@ -364,7 +373,12 @@ class DB {
             d = new Deferred();
             fun = d.callback;
         }
+        if (this._open_gets > this._max_gets) {
+            this._getq.push(key, fun, indexed);
+            return;
+        }
         this._getDB((db) => {
+            this._open_gets++;
             var tx = db.transaction(namespace, "readwrite");
             var store = tx.objectStore(namespace);
             var get;
@@ -378,6 +392,8 @@ class DB {
                 return;
             }
             get.onsuccess = () => {
+                this._open_gets--;
+                if (this._open_gets==0) this._flushGetQueue();
                 var result = (get.result) ? get.result : false;
                 if (result) {
                     fun.apply(d, [result]);
