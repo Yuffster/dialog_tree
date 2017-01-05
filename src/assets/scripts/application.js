@@ -264,6 +264,8 @@ class ProgressUI {
         meter.style.width = p+'%';
         text.innerHTML = p+'%';
         if (p==100){
+            this._waiting = 0;
+            this._total = 0;
             document.body.classList.remove('loading');
         } else {
             document.body.classList.add('loading');
@@ -274,8 +276,6 @@ class ProgressUI {
 
 ui = new UI();
 window.ui = ui;
-
-ui.startTree();
 
 
 };
